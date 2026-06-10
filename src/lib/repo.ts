@@ -412,6 +412,47 @@ export async function computeStreak(): Promise<number> {
   return streak;
 }
 
+/** All logged sets for an exercise across completed workouts, newest first. */
+export async function exerciseHistory(exerciseId: string): Promise<
+  Array<{ date: number; workoutTitle: string; sets: Array<{ weight: number; reps: number; warmup?: boolean }> }>
+> {
+  const workouts = await db().workouts
+    .orderBy("date")
+    .reverse()
+    .filter((w) => !w.inProgress)
+    .toArray();
+  const result = [];
+  for (const w of workouts) {
+    const ex = w.exercises.find((e) => e.exerciseId === exerciseId);
+    if (ex && ex.sets.length > 0) {
+      result.push({
+        date: w.date,
+        workoutTitle: w.title,
+        sets: ex.sets.map((s) => ({ weight: s.weight, reps: s.reps, warmup: s.warmup })),
+      });
+    }
+  }
+  return result;
+}
+
+/** Sets per muscle group across completed workouts in the trailing 7 days. */
+export async function weeklyMuscleSets(): Promise<Partial<Record<import("@/types").MuscleGroup, number>>> {
+  const workouts = await workoutRepo.all();
+  const cutoff = startOfDay() - 6 * 86_400_000;
+  const result: Partial<Record<import("@/types").MuscleGroup, number>> = {};
+  for (const w of workouts) {
+    if (w.inProgress || w.date < cutoff) continue;
+    for (const ex of w.exercises) {
+      const working = ex.sets.filter((s) => s.done && !s.warmup);
+      if (working.length > 0) {
+        const g = ex.muscleGroup as import("@/types").MuscleGroup;
+        result[g] = (result[g] ?? 0) + working.length;
+      }
+    }
+  }
+  return result;
+}
+
 /** Workouts in the trailing 7 days (for the dashboard frequency widget). */
 export async function weeklyFrequency(): Promise<number[]> {
   const workouts = await workoutRepo.all();

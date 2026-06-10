@@ -4,6 +4,8 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { TopBar } from "@/components/TopBar";
 import { MuscleBadge } from "@/components/MuscleIllustration";
+import { ConfirmSheet } from "@/components/ConfirmSheet";
+import { ExerciseHistory } from "@/components/ExerciseHistory";
 import { IconCopy, IconTrash, IconTrophy } from "@/components/Icons";
 import { useApp, useI18n, useUnits } from "@/components/AppProvider";
 import { templateRepo, workoutRepo } from "@/lib/repo";
@@ -24,6 +26,8 @@ function ViewInner() {
   const { toast } = useApp();
   const t = useI18n();
   const [workout, setWorkout] = useState<Workout | null | undefined>(undefined);
+  const [confirmType, setConfirmType] = useState<"delete" | "repeat" | null>(null);
+  const [historyEx, setHistoryEx] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     if (!id) {
@@ -36,9 +40,16 @@ function ViewInner() {
   async function repeat() {
     if (!workout) return;
     const existing = (await workoutRepo.all()).find((w) => w.inProgress);
-    if (existing && !confirm(t.workoutView.repeatConfirm)) {
+    if (existing) {
+      setConfirmType("repeat");
       return;
     }
+    await doRepeat();
+  }
+
+  async function doRepeat() {
+    if (!workout) return;
+    const existing = (await workoutRepo.all()).find((w) => w.inProgress);
     if (existing) await workoutRepo.remove(existing.id);
     const now = Date.now();
     const copy: Workout = {
@@ -67,7 +78,6 @@ function ViewInner() {
 
   async function remove() {
     if (!workout) return;
-    if (!confirm(t.workoutView.deleteConfirm)) return;
     await workoutRepo.remove(workout.id);
     toast(t.workoutView.workoutDeleted);
     router.replace("/workout");
@@ -114,7 +124,11 @@ function ViewInner() {
         title="Workout"
         back
         right={
-          <button className="btn btn-text btn-danger" onClick={remove} aria-label="Delete">
+          <button
+            className="btn btn-text btn-danger"
+            onClick={() => setConfirmType("delete")}
+            aria-label="Delete"
+          >
             <IconTrash style={{ width: 22, height: 22 }} />
           </button>
         }
@@ -123,31 +137,51 @@ function ViewInner() {
         <h1 className="t-hero" style={{ marginBottom: 4 }}>
           {workout.title}
         </h1>
-        <p className="muted" style={{ marginBottom: 16 }}>
+        <p className="muted" style={{ marginBottom: workout.notes ? 8 : 16 }}>
           {formatDate(workout.date)} · {formatTime(workout.date)}
           {workout.durationSec ? ` · ${formatDuration(workout.durationSec)}` : ""}
         </p>
 
+        {workout.notes && (
+          <p
+            className="muted"
+            style={{ fontSize: 14, lineHeight: 1.5, marginBottom: 16, fontStyle: "italic" }}
+          >
+            {workout.notes}
+          </p>
+        )}
+
         <div className="dash-grid" style={{ marginBottom: 20 }}>
           <div className="card-parchment center">
             <div className="stat-value">{workout.exercises.length}</div>
-            <span className="muted" style={{ fontSize: 13 }}>{t.workoutView.exercisesLabel}</span>
+            <span className="muted" style={{ fontSize: 13 }}>
+              {t.workoutView.exercisesLabel}
+            </span>
           </div>
           <div className="card-parchment center">
             <div className="stat-value">{totalSets}</div>
-            <span className="muted" style={{ fontSize: 13 }}>{t.workoutView.setsLabel}</span>
+            <span className="muted" style={{ fontSize: 13 }}>
+              {t.workoutView.setsLabel}
+            </span>
           </div>
           <div className="card-parchment center">
             <div className="stat-value" style={{ fontSize: 22 }}>
               {formatWeight(totalVolume, units)}
             </div>
-            <span className="muted" style={{ fontSize: 13 }}>{t.workoutView.volumeLabel}</span>
+            <span className="muted" style={{ fontSize: 13 }}>
+              {t.workoutView.volumeLabel}
+            </span>
           </div>
           <div className="card-parchment center">
-            <div className="stat-value" style={{ color: prCount ? "var(--pr-gold)" : undefined }}>
+            <div
+              className="stat-value"
+              style={{ color: prCount ? "var(--pr-gold)" : undefined }}
+            >
               {prCount}
             </div>
-            <span className="muted" style={{ fontSize: 13 }}>{t.workoutView.prsLabel}</span>
+            <span className="muted" style={{ fontSize: 13 }}>
+              {t.workoutView.prsLabel}
+            </span>
           </div>
         </div>
 
@@ -155,18 +189,44 @@ function ViewInner() {
           <div key={ex.id} className="card" style={{ marginBottom: 12, padding: 16 }}>
             <div className="row gap-sm" style={{ marginBottom: 10 }}>
               <MuscleBadge group={ex.muscleGroup} size={36} />
-              <div className="t-headline">{ex.exerciseName}</div>
+              <button
+                className="btn btn-text grow"
+                style={{
+                  textAlign: "left",
+                  padding: 0,
+                  fontWeight: 600,
+                  fontSize: 16,
+                  color: "var(--ink)",
+                }}
+                onClick={() =>
+                  setHistoryEx({ id: ex.exerciseId, name: ex.exerciseName })
+                }
+              >
+                {ex.exerciseName}
+              </button>
             </div>
             <div className="col" style={{ gap: 6 }}>
               {ex.sets.map((s, i) => (
                 <div
                   key={s.id}
                   className="row-between"
-                  style={{ fontSize: 15, padding: "4px 0" }}
+                  style={{
+                    fontSize: 15,
+                    padding: "4px 0",
+                    opacity: s.warmup ? 0.5 : 1,
+                  }}
                 >
                   <span className="muted" style={{ width: 24 }}>{i + 1}</span>
                   <span className="grow t-mono-num">
                     {formatWeight(s.weight, units)} × {s.reps}
+                    {s.warmup ? (
+                      <span
+                        className="muted"
+                        style={{ fontSize: 11, marginLeft: 6, fontWeight: 700 }}
+                      >
+                        W
+                      </span>
+                    ) : null}
                   </span>
                   {s.prTypes && s.prTypes.length > 0 && (
                     <span className="pr-badge">
@@ -184,11 +244,41 @@ function ViewInner() {
           <button className="btn btn-primary grow" onClick={repeat}>
             {t.workoutView.repeatWorkout}
           </button>
-          <button className="btn btn-ghost" onClick={saveTemplate} aria-label="Save as template">
+          <button
+            className="btn btn-ghost"
+            onClick={saveTemplate}
+            aria-label="Save as template"
+          >
             <IconCopy style={{ width: 20, height: 20 }} />
           </button>
         </div>
       </div>
+
+      <ConfirmSheet
+        open={confirmType === "delete"}
+        onClose={() => setConfirmType(null)}
+        onConfirm={remove}
+        title={t.confirmSheet.deleteWorkoutTitle}
+        message={t.confirmSheet.deleteWorkoutMsg}
+        danger
+      />
+
+      <ConfirmSheet
+        open={confirmType === "repeat"}
+        onClose={() => setConfirmType(null)}
+        onConfirm={doRepeat}
+        title={t.confirmSheet.repeatTitle}
+        message={t.confirmSheet.repeatMsg}
+        confirmLabel={t.confirmSheet.replace}
+        danger={false}
+      />
+
+      <ExerciseHistory
+        open={!!historyEx}
+        onClose={() => setHistoryEx(null)}
+        exerciseId={historyEx?.id ?? ""}
+        exerciseName={historyEx?.name ?? ""}
+      />
     </>
   );
 }

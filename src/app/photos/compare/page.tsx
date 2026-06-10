@@ -5,6 +5,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { TopBar } from "@/components/TopBar";
 import { Sheet } from "@/components/Sheet";
 import { IconChevronDown } from "@/components/Icons";
+import { useI18n, useLocale } from "@/components/AppProvider";
 import { photoRepo } from "@/lib/repo";
 import { relativeDay } from "@/lib/utils";
 import type { Photo, PhotoCategory } from "@/types";
@@ -12,6 +13,8 @@ import type { Photo, PhotoCategory } from "@/types";
 type Mode = "side" | "slider";
 
 export default function ComparePage() {
+  const t = useI18n();
+  const locale = useLocale();
   const metas = useLiveQuery(() => photoRepo.allMeta(), [], []);
   const [cat, setCat] = useState<PhotoCategory>("front");
   const [mode, setMode] = useState<Mode>("slider");
@@ -19,6 +22,12 @@ export default function ComparePage() {
   const [rightId, setRightId] = useState<string | null>(null);
   const [split, setSplit] = useState(50);
   const [picking, setPicking] = useState<"left" | "right" | null>(null);
+
+  const CATS: { key: PhotoCategory; label: string }[] = [
+    { key: "front", label: t.photos.front },
+    { key: "side", label: t.photos.side },
+    { key: "back", label: t.photos.back },
+  ];
 
   const inCat = useMemo(
     () => (metas ?? []).filter((m) => m.category === cat),
@@ -44,28 +53,35 @@ export default function ComparePage() {
 
   return (
     <>
-      <TopBar title="Compare" back />
+      <TopBar title={t.photos.compareTitle} back />
       <div className="page">
         <div className="segmented" style={{ marginBottom: 12 }}>
-          {(["front", "side", "back"] as PhotoCategory[]).map((c) => (
-            <button key={c} className={cat === c ? "on" : ""} onClick={() => setCat(c)} style={{ textTransform: "capitalize" }}>
-              {c}
+          {CATS.map((c) => (
+            <button
+              key={c.key}
+              className={cat === c.key ? "on" : ""}
+              onClick={() => setCat(c.key)}
+            >
+              {c.label}
             </button>
           ))}
         </div>
 
-        <div className="segmented" style={{ marginBottom: 16, width: 200, marginLeft: "auto", marginRight: "auto" }}>
+        <div
+          className="segmented"
+          style={{ marginBottom: 16, width: 200, marginLeft: "auto", marginRight: "auto" }}
+        >
           <button className={mode === "slider" ? "on" : ""} onClick={() => setMode("slider")}>
-            Slider
+            {t.photos.slider}
           </button>
           <button className={mode === "side" ? "on" : ""} onClick={() => setMode("side")}>
-            Side by side
+            {t.photos.sideBySide}
           </button>
         </div>
 
         {inCat.length < 2 ? (
           <div className="empty">
-            <p>Take at least two {cat} photos to compare your progress.</p>
+            <p>{t.photos.needTwo(cat)}</p>
           </div>
         ) : mode === "slider" ? (
           <SliderCompare
@@ -83,12 +99,22 @@ export default function ComparePage() {
 
         {/* Selectors */}
         <div className="row gap-sm" style={{ marginTop: 16 }}>
-          <Selector label="Before" meta={left} onTap={() => setPicking("left")} />
-          <Selector label="After" meta={right} onTap={() => setPicking("right")} />
+          <Selector
+            label={t.photos.before}
+            meta={left}
+            onTap={() => setPicking("left")}
+            locale={locale}
+          />
+          <Selector
+            label={t.photos.after}
+            meta={right}
+            onTap={() => setPicking("right")}
+            locale={locale}
+          />
         </div>
       </div>
 
-      <Sheet open={!!picking} onClose={() => setPicking(null)} title="Choose photo">
+      <Sheet open={!!picking} onClose={() => setPicking(null)} title={t.photos.choosePhoto}>
         <PickerList
           metas={inCat}
           onPick={(id) => {
@@ -96,6 +122,7 @@ export default function ComparePage() {
             else setRightId(id);
             setPicking(null);
           }}
+          locale={locale}
         />
       </Sheet>
     </>
@@ -106,17 +133,23 @@ function Selector({
   label,
   meta,
   onTap,
+  locale,
 }: {
   label: string;
   meta: Omit<Photo, "blob"> | null;
   onTap: () => void;
+  locale: string;
 }) {
   return (
-    <button className="btn btn-ghost grow row-between" onClick={onTap} style={{ justifyContent: "space-between" }}>
+    <button
+      className="btn btn-ghost grow row-between"
+      onClick={onTap}
+      style={{ justifyContent: "space-between" }}
+    >
       <span className="col" style={{ alignItems: "flex-start" }}>
         <span className="muted" style={{ fontSize: 12 }}>{label}</span>
         <span style={{ fontSize: 15, fontWeight: 600 }}>
-          {meta ? relativeDay(meta.date) : "—"}
+          {meta ? relativeDay(meta.date, locale as "en" | "de") : "—"}
         </span>
       </span>
       <IconChevronDown style={{ width: 18, height: 18, color: "var(--ink-muted-48)" }} />
@@ -178,7 +211,15 @@ function SliderCompare({
       )}
       <div className="compare-handle" />
       <div className="compare-knob">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        >
           <path d="M9 7l-4 5 4 5M15 7l4 5-4 5" />
         </svg>
       </div>
@@ -198,14 +239,16 @@ function SliderCompare({
 function PickerList({
   metas,
   onPick,
+  locale,
 }: {
   metas: Array<Omit<Photo, "blob">>;
   onPick: (id: string) => void;
+  locale: string;
 }) {
   return (
     <div className="photo-grid">
       {metas.map((m) => (
-        <PickerThumb key={m.id} meta={m} onPick={() => onPick(m.id)} />
+        <PickerThumb key={m.id} meta={m} onPick={() => onPick(m.id)} locale={locale} />
       ))}
     </div>
   );
@@ -214,9 +257,11 @@ function PickerList({
 function PickerThumb({
   meta,
   onPick,
+  locale,
 }: {
   meta: Omit<Photo, "blob">;
   onPick: () => void;
+  locale: string;
 }) {
   const url = usePhotoUrl(meta.id);
   return (
@@ -225,7 +270,7 @@ function PickerThumb({
         // eslint-disable-next-line @next/next/no-img-element
         <img src={url} alt="" loading="lazy" />
       )}
-      <span className="photo-cell-date">{relativeDay(meta.date)}</span>
+      <span className="photo-cell-date">{relativeDay(meta.date, locale as "en" | "de")}</span>
     </button>
   );
 }

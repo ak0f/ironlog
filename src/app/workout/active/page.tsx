@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { TopBar } from "@/components/TopBar";
 import { ExercisePicker } from "@/components/ExercisePicker";
 import { RestTimer } from "@/components/RestTimer";
+import { ConfirmSheet } from "@/components/ConfirmSheet";
 import { MuscleBadge } from "@/components/MuscleIllustration";
 import {
   IconCheck,
@@ -37,11 +38,13 @@ function muscleColor(group: string): string {
   return MUSCLE_COLORS[group?.toLowerCase()] ?? "var(--primary)";
 }
 
+type ConfirmType = "discard" | "noSets" | null;
+
 export default function ActiveWorkoutPage() {
   const router = useRouter();
   const units = useUnits();
   const t = useI18n();
-  const { toast } = useApp();
+  const { toast, settings } = useApp();
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [loading, setLoading] = useState(true);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -49,6 +52,11 @@ export default function ActiveWorkoutPage() {
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startTime = useRef<number>(Date.now());
   const [restTrigger, setRestTrigger] = useState(0);
+  const [confirmType, setConfirmType] = useState<ConfirmType>(null);
+  const [noteExpanded, setNoteExpanded] = useState(false);
+  const pendingFinish = useRef(false);
+
+  const restPreset = settings?.restTimerDuration ?? 90;
 
   useEffect(() => {
     (async () => {
@@ -152,12 +160,8 @@ export default function ActiveWorkoutPage() {
     }));
   }
 
-  async function finish() {
+  async function doFinish() {
     if (!workout) return;
-    const hasSets = workout.exercises.some((e) => e.sets.some((s) => s.done));
-    if (!hasSets) {
-      if (!confirm(t.activeWorkout.noSetsDoneConfirm)) return;
-    }
     if (saveTimer.current) clearTimeout(saveTimer.current);
     const finalized: Workout = {
       ...workout,
@@ -172,9 +176,19 @@ export default function ActiveWorkoutPage() {
     router.replace(`/workout/view?id=${workout.id}`);
   }
 
+  async function finish() {
+    if (!workout) return;
+    const hasSets = workout.exercises.some((e) => e.sets.some((s) => s.done));
+    if (!hasSets) {
+      pendingFinish.current = true;
+      setConfirmType("noSets");
+      return;
+    }
+    await doFinish();
+  }
+
   async function discard() {
     if (!workout) return;
-    if (!confirm(t.activeWorkout.discardConfirm)) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     await workoutRepo.remove(workout.id);
     router.replace("/workout");
@@ -244,10 +258,7 @@ export default function ActiveWorkoutPage() {
             aria-label="Workout title"
           />
           <div className="row gap-sm" style={{ alignItems: "center" }}>
-            <span
-              className="muted"
-              style={{ fontSize: 14 }}
-            >
+            <span className="muted" style={{ fontSize: 14 }}>
               {doneSets}/{totalSets} {t.activeWorkout.setsDone}
             </span>
             {totalSets > 0 && (
@@ -265,6 +276,27 @@ export default function ActiveWorkoutPage() {
               </span>
             )}
           </div>
+
+          {/* Workout note */}
+          {noteExpanded ? (
+            <textarea
+              className="input"
+              value={workout.notes ?? ""}
+              onChange={(e) => mutate((w) => ({ ...w, notes: e.target.value }))}
+              placeholder={t.activeWorkout.notePlaceholder}
+              rows={3}
+              style={{ marginTop: 10, resize: "none", fontSize: 14 }}
+              autoFocus
+            />
+          ) : (
+            <button
+              className="btn btn-text"
+              style={{ marginTop: 6, fontSize: 13, color: "var(--ink-muted-48)", padding: 0 }}
+              onClick={() => setNoteExpanded(true)}
+            >
+              {workout.notes ? workout.notes : `+ ${t.activeWorkout.workoutNote}`}
+            </button>
+          )}
         </div>
 
         {/* Exercise cards */}
@@ -285,7 +317,9 @@ export default function ActiveWorkoutPage() {
                 <div
                   style={{
                     position: "absolute",
-                    left: 0, top: 12, bottom: 12,
+                    left: 0,
+                    top: 12,
+                    bottom: 12,
                     width: 3.5,
                     borderRadius: 2,
                     background: accentColor,
@@ -294,7 +328,7 @@ export default function ActiveWorkoutPage() {
                 />
 
                 {/* Exercise header */}
-                <div className="row gap-sm" style={{ marginBottom: 14 }}>
+                <div className="row gap-sm" style={{ marginBottom: 4 }}>
                   <MuscleBadge group={ex.muscleGroup} size={38} />
                   <div className="grow" style={{ minWidth: 0 }}>
                     <div className="t-headline" style={{ fontSize: 16 }}>
@@ -314,8 +348,25 @@ export default function ActiveWorkoutPage() {
                   </button>
                 </div>
 
+                {/* Exercise notes */}
+                <ExerciseNoteRow
+                  notes={ex.notes}
+                  onSave={(val) =>
+                    mutate((w) => ({
+                      ...w,
+                      exercises: w.exercises.map((e) =>
+                        e.id === ex.id ? { ...e, notes: val } : e
+                      ),
+                    }))
+                  }
+                />
+
                 {/* Column headers */}
-                <div className="set-grid set-grid-head" style={{ marginBottom: 4 }}>
+                <div
+                  className="set-grid set-grid-head"
+                  style={{ marginBottom: 4, gridTemplateColumns: "28px 1fr 1fr 1fr 44px" }}
+                >
+                  <span style={{ textAlign: "center", fontSize: 11 }}>W</span>
                   <span style={{ textAlign: "center" }}>#</span>
                   <span style={{ textAlign: "center" }}>{unitLabel(units)}</span>
                   <span style={{ textAlign: "center" }}>Reps</span>
@@ -330,17 +381,44 @@ export default function ActiveWorkoutPage() {
                       <div
                         key={set.id}
                         className={`set-grid${set.done ? " set-grid-done" : ""}`}
-                        style={{ transition: "background 0.2s ease" }}
+                        style={{
+                          transition: "background 0.2s ease",
+                          opacity: set.warmup ? 0.55 : 1,
+                          gridTemplateColumns: "28px 1fr 1fr 1fr 44px",
+                        }}
                       >
-                        <span className="set-index" style={{ fontSize: 13 }}>{i + 1}</span>
+                        {/* Warmup toggle */}
+                        <button
+                          onClick={() => updateSet(ex.id, set.id, { warmup: !set.warmup })}
+                          aria-label="Toggle warmup"
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 700,
+                            color: set.warmup ? "var(--primary)" : "var(--ink-muted-30)",
+                            background: "transparent",
+                            border: "none",
+                            cursor: "pointer",
+                            padding: 0,
+                            width: 28,
+                            height: 28,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            borderRadius: 6,
+                          }}
+                        >
+                          {t.activeWorkout.warmup}
+                        </button>
+
+                        <span className="set-index" style={{ fontSize: 13 }}>
+                          {i + 1}
+                        </span>
                         <input
                           className="num-cell"
                           type="number"
                           inputMode="decimal"
                           value={set.weight ? fromKg(set.weight, units) : ""}
-                          placeholder={
-                            hint ? String(fromKg(hint.weight, units)) : "0"
-                          }
+                          placeholder={hint ? String(fromKg(hint.weight, units)) : "0"}
                           onChange={(e) =>
                             updateSet(ex.id, set.id, {
                               weight: e.target.value
@@ -367,16 +445,14 @@ export default function ActiveWorkoutPage() {
                             onClick={() => {
                               const nowDone = !set.done;
                               updateSet(ex.id, set.id, { done: nowDone });
-                              if (nowDone) {
-                                setRestTrigger((t) => t + 1);
+                              if (nowDone && !set.warmup && restPreset > 0) {
+                                setRestTrigger((n) => n + 1);
                                 if ("vibrate" in navigator) navigator.vibrate?.(15);
                               }
                             }}
                             aria-label="Mark set done"
                           >
-                            {set.done && (
-                              <IconCheck style={{ width: 18, height: 18 }} />
-                            )}
+                            {set.done && <IconCheck style={{ width: 18, height: 18 }} />}
                           </button>
                         </div>
                       </div>
@@ -397,9 +473,7 @@ export default function ActiveWorkoutPage() {
                     <button
                       className="btn btn-ghost btn-danger"
                       style={{ minHeight: 38, padding: "10px 14px" }}
-                      onClick={() =>
-                        removeSet(ex.id, ex.sets[ex.sets.length - 1].id)
-                      }
+                      onClick={() => removeSet(ex.id, ex.sets[ex.sets.length - 1].id)}
                       aria-label="Remove last set"
                     >
                       <IconTrash style={{ width: 16, height: 16 }} />
@@ -435,7 +509,7 @@ export default function ActiveWorkoutPage() {
           <button
             className="btn btn-ghost btn-danger grow"
             style={{ fontSize: 14, minHeight: 44 }}
-            onClick={discard}
+            onClick={() => setConfirmType("discard")}
           >
             <IconTrash style={{ width: 17, height: 17 }} /> {t.activeWorkout.discard}
           </button>
@@ -457,7 +531,78 @@ export default function ActiveWorkoutPage() {
         onPick={addExercises}
       />
 
-      <RestTimer trigger={restTrigger} preset={90} />
+      <RestTimer trigger={restTrigger} preset={restPreset > 0 ? restPreset : 90} />
+
+      {/* Discard confirm */}
+      <ConfirmSheet
+        open={confirmType === "discard"}
+        onClose={() => setConfirmType(null)}
+        onConfirm={discard}
+        title={t.confirmSheet.discardTitle}
+        message={t.confirmSheet.discardMsg}
+        danger
+      />
+
+      {/* No sets confirm */}
+      <ConfirmSheet
+        open={confirmType === "noSets"}
+        onClose={() => setConfirmType(null)}
+        onConfirm={doFinish}
+        title={t.confirmSheet.noSetsTitle}
+        message={t.confirmSheet.noSetsMsg}
+        confirmLabel={t.confirmSheet.finish}
+        danger={false}
+      />
     </>
+  );
+}
+
+function ExerciseNoteRow({
+  notes,
+  onSave,
+}: {
+  notes?: string;
+  onSave: (val: string) => void;
+}) {
+  const t = useI18n();
+  const [editing, setEditing] = useState(false);
+  const [val, setVal] = useState(notes ?? "");
+
+  if (editing) {
+    return (
+      <div style={{ marginBottom: 10 }}>
+        <textarea
+          className="input"
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          placeholder={t.activeWorkout.notePlaceholder}
+          rows={2}
+          autoFocus
+          style={{ resize: "none", fontSize: 13 }}
+          onBlur={() => {
+            onSave(val);
+            setEditing(false);
+          }}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <button
+      className="btn btn-text"
+      style={{
+        fontSize: 12,
+        color: notes ? "var(--ink-muted-48)" : "var(--ink-muted-30)",
+        padding: "0 0 8px",
+        textAlign: "left",
+      }}
+      onClick={() => {
+        setVal(notes ?? "");
+        setEditing(true);
+      }}
+    >
+      {notes ? notes : `+ ${t.activeWorkout.notePlaceholder}`}
+    </button>
   );
 }

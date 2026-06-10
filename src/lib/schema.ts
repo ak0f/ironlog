@@ -41,6 +41,7 @@ export const workoutSetSchema = z.object({
   done: z.boolean(),
   notes: z.string().optional(),
   prTypes: z.array(prTypeSchema).optional(),
+  warmup: z.boolean().optional(),
 });
 
 export const workoutExerciseSchema = z.object({
@@ -112,6 +113,7 @@ export const settingsSchema = z.object({
   trainingGoal: z.enum(["bulk", "maintain", "cut"]).optional(),
   onboarded: z.boolean().optional(),
   language: z.enum(["en", "de"]).optional(),
+  restTimerDuration: z.number().optional(),
   schemaVersion: z.number(),
   createdAt: z.number(),
   updatedAt: z.number(),

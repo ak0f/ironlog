@@ -10,6 +10,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { Sheet } from "./Sheet";
 import { MuscleBadge } from "./MuscleIllustration";
 import { IconCheck, IconPlus, IconSearch } from "./Icons";
+import { useI18n } from "./AppProvider";
 import { exerciseRepo } from "@/lib/repo";
 import {
   MUSCLE_GROUPS,
@@ -25,6 +26,7 @@ interface Props {
 }
 
 export function ExercisePicker({ open, onClose, onPick }: Props) {
+  const t = useI18n();
   const all = useLiveQuery(() => exerciseRepo.all(), [], []);
   const [group, setGroup] = useState<MuscleGroup | "all">("all");
   const [query, setQuery] = useState("");
@@ -62,7 +64,7 @@ export function ExercisePicker({ open, onClose, onPick }: Props) {
     setNewName("");
   }
 
-  function confirm() {
+  function addSelected() {
     if (selectedList.length === 0) return;
     onPick(selectedList);
     reset();
@@ -90,28 +92,40 @@ export function ExercisePicker({ open, onClose, onPick }: Props) {
         reset();
         onClose();
       }}
-      title="Add exercise"
+      title={t.exercisePicker.title}
       right={
         <button
           className="btn btn-text"
-          onClick={confirm}
+          onClick={addSelected}
           disabled={selectedList.length === 0}
           style={{ fontWeight: 600 }}
         >
-          {selectedList.length > 0 ? `Add ${selectedList.length}` : "Add"}
+          {selectedList.length > 0
+            ? t.exercisePicker.addN(selectedList.length)
+            : t.exercisePicker.add}
         </button>
       }
     >
       {!creating ? (
         <>
           <div className="row gap-xs" style={{ marginBottom: 12 }}>
-            <div className="input" style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px" }}>
+            <div
+              className="input"
+              style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px" }}
+            >
               <IconSearch style={{ width: 18, height: 18, color: "var(--ink-muted-48)" }} />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search exercises"
-                style={{ border: "none", background: "transparent", outline: "none", flex: 1, fontSize: 17, color: "var(--ink)" }}
+                placeholder={t.exercisePicker.search}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  outline: "none",
+                  flex: 1,
+                  fontSize: 17,
+                  color: "var(--ink)",
+                }}
               />
             </div>
           </div>
@@ -121,7 +135,7 @@ export function ExercisePicker({ open, onClose, onPick }: Props) {
               className={`chip${group === "all" ? " chip-active" : ""}`}
               onClick={() => setGroup("all")}
             >
-              All
+              {t.photos.all}
             </button>
             {MUSCLE_GROUPS.map((g) => (
               <button
@@ -138,13 +152,18 @@ export function ExercisePicker({ open, onClose, onPick }: Props) {
             <button
               className="list-row list-row-tap"
               onClick={() => setCreating(true)}
-              style={{ width: "100%", background: "transparent", border: "none", color: "var(--primary)" }}
+              style={{
+                width: "100%",
+                background: "transparent",
+                border: "none",
+                color: "var(--primary)",
+              }}
             >
               <div className="muscle-badge" style={{ width: 40, height: 40 }}>
                 <IconPlus style={{ width: 20, height: 20, color: "var(--primary)" }} />
               </div>
               <span className="t-headline" style={{ color: "var(--primary)" }}>
-                Create new exercise
+                {t.exercisePicker.createNew}
               </span>
             </button>
           </div>
@@ -157,7 +176,12 @@ export function ExercisePicker({ open, onClose, onPick }: Props) {
                   key={ex.id}
                   className="list-row list-row-tap"
                   onClick={() => toggle(ex)}
-                  style={{ width: "100%", background: "transparent", border: "none", textAlign: "left" }}
+                  style={{
+                    width: "100%",
+                    background: "transparent",
+                    border: "none",
+                    textAlign: "left",
+                  }}
                 >
                   <MuscleBadge group={ex.muscleGroup} />
                   <div className="grow" style={{ minWidth: 0 }}>
@@ -175,7 +199,7 @@ export function ExercisePicker({ open, onClose, onPick }: Props) {
             })}
             {filtered.length === 0 && (
               <div className="list-row">
-                <span className="muted">No matching exercises.</span>
+                <span className="muted">{t.exercisePicker.noMatches}</span>
               </div>
             )}
           </div>
@@ -184,19 +208,19 @@ export function ExercisePicker({ open, onClose, onPick }: Props) {
         <div className="col gap-md">
           <div>
             <label className="t-caption-strong" style={{ display: "block", marginBottom: 6 }}>
-              Name
+              {t.exercisePicker.nameLabel}
             </label>
             <input
               className="input"
               value={newName}
               autoFocus
               onChange={(e) => setNewName(e.target.value)}
-              placeholder="e.g. Incline Cable Fly"
+              placeholder={t.exercisePicker.namePlaceholder}
             />
           </div>
           <div>
             <label className="t-caption-strong" style={{ display: "block", marginBottom: 6 }}>
-              Muscle group
+              {t.exercisePicker.muscleLabel}
             </label>
             <div className="chip-row">
               {MUSCLE_GROUPS.map((g) => (
@@ -212,25 +236,25 @@ export function ExercisePicker({ open, onClose, onPick }: Props) {
           </div>
           <div>
             <label className="t-caption-strong" style={{ display: "block", marginBottom: 6 }}>
-              Equipment (optional)
+              {t.exercisePicker.equipLabel}
             </label>
             <input
               className="input"
               value={newEquip}
               onChange={(e) => setNewEquip(e.target.value)}
-              placeholder="Barbell, Dumbbell, Cable…"
+              placeholder={t.exercisePicker.equipPlaceholder}
             />
           </div>
           <div className="row gap-sm">
             <button className="btn btn-ghost grow" onClick={() => setCreating(false)}>
-              Cancel
+              {t.confirmSheet.cancel}
             </button>
             <button
               className="btn btn-primary grow"
               onClick={createExercise}
               disabled={!newName.trim()}
             >
-              Create
+              {t.common.save}
             </button>
           </div>
         </div>

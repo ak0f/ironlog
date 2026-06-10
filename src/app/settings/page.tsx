@@ -285,15 +285,43 @@ export default function SettingsPage() {
           <input ref={fileRef} type="file" accept=".ironlog,application/octet-stream" hidden onChange={onFile} />
         </Section>
 
+        {/* Rest Timer */}
+        <Section title={t.settings.restTimer}>
+          <div className="list-group">
+            <div className="list-row col" style={{ alignItems: "stretch", gap: 10 }}>
+              <div className="chip-row">
+                {([0, 60, 90, 120, 180, 300] as number[]).map((val) => {
+                  const active = (settings.restTimerDuration ?? 90) === val;
+                  const label =
+                    val === 0
+                      ? t.settings.restTimerOff
+                      : val >= 60 && val % 60 === 0
+                      ? t.settings.restTimerMin(val / 60)
+                      : t.settings.restTimerSec(val);
+                  return (
+                    <button
+                      key={val}
+                      className={`chip${active ? " chip-active" : ""}`}
+                      onClick={() => updateSettings({ restTimerDuration: val })}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </Section>
+
         {/* Coming soon */}
         <Section title={t.settings.comingSoon}>
           <div className="list-group">
-            <div className="list-row" style={{ opacity: 0.5 }}>
+            <div className="list-row" style={{ opacity: 0.4, pointerEvents: "none" }}>
               <IconLock style={{ width: 20, height: 20 }} />
               <span className="grow t-body">{t.settings.iCloudSync}</span>
               <span className="muted" style={{ fontSize: 13 }}>{t.common.off}</span>
             </div>
-            <div className="list-row" style={{ opacity: 0.5 }}>
+            <div className="list-row" style={{ opacity: 0.4, pointerEvents: "none" }}>
               <IconLock style={{ width: 20, height: 20 }} />
               <span className="grow t-body">{t.settings.appleHealth}</span>
               <span className="muted" style={{ fontSize: 13 }}>{t.common.off}</span>

@@ -33,7 +33,7 @@ export function DailyCheckIn() {
   useEffect(() => {
     if (!ready || !settings) return;
     const today = new Date();
-    const stamp = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+    const stamp = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
     const last = typeof localStorage !== "undefined" ? localStorage.getItem(KEY) : stamp;
     if (last === stamp) return;
 
@@ -60,7 +60,7 @@ export function DailyCheckIn() {
 
   function dismiss() {
     const today = new Date();
-    const stamp = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+    const stamp = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
     try {
       localStorage.setItem(KEY, stamp);
     } catch {

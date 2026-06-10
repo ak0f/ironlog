@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { TopBar } from "@/components/TopBar";
 import { Sheet } from "@/components/Sheet";
+import { ConfirmSheet } from "@/components/ConfirmSheet";
 import { MuscleBadge } from "@/components/MuscleIllustration";
 import { IconPlus, IconSearch, IconTrash } from "@/components/Icons";
 import { useApp, useI18n } from "@/components/AppProvider";
@@ -23,6 +24,8 @@ export default function ExercisesPage() {
   const [query, setQuery] = useState("");
   const [editing, setEditing] = useState<Exercise | null>(null);
   const [creating, setCreating] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<Exercise | null>(null);
+  const [pendingDeletePRs, setPendingDeletePRs] = useState(0);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -35,10 +38,16 @@ export default function ExercisesPage() {
 
   async function remove(ex: Exercise) {
     const prs = await prRepo.forExercise(ex.id);
-    if (!confirm(t.exercises.deleteConfirm(ex.name, prs.length))) return;
-    await exerciseRepo.remove(ex.id);
+    setPendingDeletePRs(prs.length);
+    setPendingDelete(ex);
+  }
+
+  async function doDelete() {
+    if (!pendingDelete) return;
+    await exerciseRepo.remove(pendingDelete.id);
     setEditing(null);
     toast(t.exercises.exerciseDeleted);
+    setPendingDelete(null);
   }
 
   return (
@@ -122,6 +131,14 @@ export default function ExercisesPage() {
         }}
         onDelete={editing?.custom ? () => remove(editing) : undefined}
         t={t}
+      />
+
+      <ConfirmSheet
+        open={pendingDelete !== null}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={doDelete}
+        title={t.exercises.deleteConfirm(pendingDelete?.name ?? "", pendingDeletePRs)}
+        danger
       />
     </>
   );

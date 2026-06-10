@@ -5,6 +5,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { TopBar } from "@/components/TopBar";
 import { LineChart, type Point } from "@/components/LineChart";
 import { Sheet } from "@/components/Sheet";
+import { ConfirmSheet } from "@/components/ConfirmSheet";
 import { IconPlus, IconScale, IconTrash } from "@/components/Icons";
 import { useApp, useI18n, useLocale, useUnits } from "@/components/AppProvider";
 import { bodyweightRepo } from "@/lib/repo";
@@ -27,6 +28,7 @@ export default function BodyPage() {
   const entries = useLiveQuery(() => bodyweightRepo.all(), [], []);
   const [open, setOpen] = useState(false);
   const [range, setRange] = useState<Range>(90);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const [weight, setWeight] = useState("");
   const [calories, setCalories] = useState("");
@@ -60,8 +62,8 @@ export default function BodyPage() {
     toast(t.body.weightLogged);
   }
 
-  async function remove(id: string) {
-    if (confirm(t.body.deleteConfirm)) await bodyweightRepo.remove(id);
+  function remove(id: string) {
+    setDeleteId(id);
   }
 
   const reversed = [...(entries ?? [])].reverse();
@@ -156,6 +158,16 @@ export default function BodyPage() {
           </div>
         )}
       </div>
+
+      <ConfirmSheet
+        open={deleteId !== null}
+        onClose={() => setDeleteId(null)}
+        onConfirm={() => {
+          if (deleteId) void bodyweightRepo.remove(deleteId);
+        }}
+        title={t.body.deleteConfirm}
+        danger
+      />
 
       <Sheet open={open} onClose={() => setOpen(false)} title={t.body.logBodyweight}>
         <div className="col gap-md">

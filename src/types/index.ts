@@ -67,6 +67,8 @@ export interface WorkoutSet {
   notes?: string;
   /** PR flags computed at save time. */
   prTypes?: PRType[];
+  /** True when this is a warmup set (excluded from PR/volume tracking). */
+  warmup?: boolean;
 }
 
 /** An exercise instance inside a workout, with its ordered sets. */
@@ -177,6 +179,8 @@ export interface Settings {
   onboarded?: boolean;
   /** UI language. */
   language?: Locale;
+  /** Rest timer duration in seconds. 0 = off. Defaults to 90 when undefined. */
+  restTimerDuration?: number;
   /** Schema version for export/import migration. */
   schemaVersion: number;
   createdAt: number;

@@ -21,8 +21,10 @@ import {
   prRepo,
   photoRepo,
   weeklyFrequency,
+  weeklyMuscleSets,
   workoutRepo,
 } from "@/lib/repo";
+import { MUSCLE_GROUPS } from "@/types";
 import { formatWeight, fromKg, relativeDay, unitLabel } from "@/lib/utils";
 
 const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
@@ -48,6 +50,8 @@ export default function DashboardPage() {
     [],
     0
   );
+
+  const muscleSets = useLiveQuery(() => weeklyMuscleSets(), [], {} as Partial<Record<import("@/types").MuscleGroup, number>>);
 
   useEffect(() => {
     void computeStreak().then(setStreak);
@@ -210,6 +214,36 @@ export default function DashboardPage() {
                   <span className="stat-chip-label">{t.dashboard.dayStreak}</span>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Muscles this week */}
+          {muscleSets && MUSCLE_GROUPS.some((g) => (muscleSets[g] ?? 0) > 0) && (
+            <div className="card span-2" style={{ padding: "14px 16px" }}>
+              <span className="t-caption-strong" style={{ display: "block", marginBottom: 10 }}>
+                {t.dashboard.thisWeek}
+              </span>
+              <div className="row" style={{ flexWrap: "wrap", gap: 8 }}>
+                {MUSCLE_GROUPS.filter((g) => (muscleSets[g] ?? 0) > 0).map((g) => (
+                  <div
+                    key={g}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 5,
+                      background: "var(--surface-raised)",
+                      borderRadius: 999,
+                      padding: "4px 10px",
+                      fontSize: 13,
+                    }}
+                  >
+                    <span style={{ fontWeight: 600, color: "var(--primary)" }}>
+                      {muscleSets[g]}
+                    </span>
+                    <span className="muted">{t.muscleGroups[g]}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
