@@ -3,14 +3,12 @@
 import { useState } from "react";
 import { useApp } from "./AppProvider";
 import {
-  IconCamera,
   IconCheck,
   IconChevron,
   IconDumbbell,
   IconFaceId,
   IconLock,
 } from "./Icons";
-import { MuscleIllustration } from "./MuscleIllustration";
 import {
   isPlatformAuthenticatorAvailable,
   registerBiometric,
@@ -21,7 +19,37 @@ import { SPLITS, blueprintExercises, blueprintsFor, type SplitId } from "@/data/
 import { translations } from "@/lib/i18n";
 import type { Locale, TrainingGoal, Units } from "@/types";
 
-const TOTAL_STEPS = 7; // 0=lang, 1=welcome, 2=privacy, 3=faceId, 4=profile, 5=split, 6=photos
+const TOTAL_STEPS = 7;
+
+/* ── Design tokens matching DESIGN.md ─────────────────────────────── */
+const T = {
+  heading: {
+    fontSize: 40, fontWeight: 600, letterSpacing: "-0.5px",
+    lineHeight: 1.1, color: "#fff", margin: 0,
+  } as React.CSSProperties,
+  body: {
+    fontSize: 17, fontWeight: 400, lineHeight: 1.47,
+    letterSpacing: "-0.374px", color: "rgba(255,255,255,0.55)",
+    margin: 0,
+  } as React.CSSProperties,
+  caption: {
+    fontSize: 13, fontWeight: 600, letterSpacing: "0.14em",
+    textTransform: "uppercase" as const, color: "rgba(255,255,255,0.28)",
+  } as React.CSSProperties,
+};
+
+const TILE: React.CSSProperties = {
+  display: "flex", alignItems: "center",
+  padding: "18px 20px", borderRadius: 14,
+  border: "1px solid rgba(255,255,255,0.1)",
+  background: "rgba(255,255,255,0.05)",
+  cursor: "pointer", textAlign: "left", width: "100%",
+  transition: "border-color 0.16s ease, background 0.16s ease",
+};
+const TILE_ACTIVE: React.CSSProperties = {
+  ...TILE, borderColor: "#0066cc",
+  background: "rgba(0,102,204,0.11)",
+};
 
 export function Onboarding() {
   const { settings, ready, updateSettings, toast } = useApp();
@@ -29,7 +57,6 @@ export function Onboarding() {
   const [dir, setDir] = useState<1 | -1>(1);
   const [busy, setBusy] = useState(false);
 
-  // profile state
   const [locale, setLocale] = useState<Locale>("en");
   const [name, setName] = useState("");
   const [units, setUnits] = useState<Units>("metric");
@@ -44,73 +71,42 @@ export function Onboarding() {
   const t = translations[locale];
   const progress = step / (TOTAL_STEPS - 1);
 
-  const go = (n: number) => {
-    setDir(n > step ? 1 : -1);
-    setStep(n);
-  };
+  const go = (n: number) => { setDir(n > step ? 1 : -1); setStep(n); };
 
   async function enableFaceId() {
     const ok = await isPlatformAuthenticatorAvailable();
-    if (!ok) {
-      toast(t.settings.biometricNotAvailable);
-      go(4);
-      return;
-    }
+    if (!ok) { toast(t.settings.biometricNotAvailable); go(4); return; }
     try {
       const cred = await registerBiometric();
-      setBioCred(cred);
-      setBioEnabled(true);
+      setBioCred(cred); setBioEnabled(true);
       if ("vibrate" in navigator) navigator.vibrate?.(20);
       go(4);
-    } catch {
-      toast(t.onboarding.maybeLater);
-      go(4);
-    }
+    } catch { go(4); }
   }
 
   async function finish() {
     setBusy(true);
     try {
       await updateSettings({
-        units,
-        language: locale,
+        units, language: locale,
         displayName: name.trim() || undefined,
         trainingGoal: goal,
         biometricLockEnabled: bioEnabled,
         webauthnCredentialId: bioCred,
-        bodyweightGoal:
-          goal === "cut" && bw
-            ? toKg(parseFloat(bw) * 0.95, units)
-            : undefined,
+        bodyweightGoal: goal === "cut" && bw ? toKg(parseFloat(bw) * 0.95, units) : undefined,
         onboarded: true,
       });
-
       const w = parseFloat(bw);
-      if (w > 0) {
-        await bodyweightRepo.upsertForDay({ weight: toKg(w, units), date: Date.now() });
-      }
-
+      if (w > 0) await bodyweightRepo.upsertForDay({ weight: toKg(w, units), date: Date.now() });
       for (const bp of blueprintsFor(split)) {
         const now = Date.now();
-        await templateRepo.save({
-          id: uid(),
-          title: bp.title,
-          exercises: blueprintExercises(bp),
-          createdAt: now,
-          updatedAt: now,
-        });
+        await templateRepo.save({ id: uid(), title: bp.title, exercises: blueprintExercises(bp), createdAt: now, updatedAt: now });
       }
-
       try {
         const today = new Date();
-        localStorage.setItem(
-          "ironlog.lastCheckIn",
-          `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`
-        );
+        localStorage.setItem("ironlog.lastCheckIn", `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`);
       } catch { /* ignore */ }
-    } finally {
-      setBusy(false);
-    }
+    } finally { setBusy(false); }
   }
 
   const unitLabel = units === "imperial" ? "lb" : "kg";
@@ -123,14 +119,9 @@ export function Onboarding() {
 
   return (
     <div className="onb">
-      {/* Background orbs */}
-      <div className="onb-orb onb-orb-blue" />
-      <div className="onb-orb onb-orb-purple" />
-      <div className="onb-orb onb-orb-fire" />
-
-      {/* Thin progress bar at top */}
+      {/* Progress bar — only after language step */}
       {step > 0 && (
-        <div className="onb-progress" style={{ marginBottom: 16 }}>
+        <div className="onb-progress" style={{ marginBottom: 0 }}>
           <div className="onb-progress-fill" style={{ width: `${progress * 100}%` }} />
         </div>
       )}
@@ -138,260 +129,129 @@ export function Onboarding() {
       <div
         key={step}
         className={`onb-step ${dir === 1 ? "in-right" : "in-left"}`}
-        style={{ position: "relative", zIndex: 1 }}
+        style={{ alignItems: "center" }}
       >
-        {/* ── Step 0: Language ── */}
+
+        {/* ── 0 · Language ────────────────────────────────────────────── */}
         {step === 0 && (
-          <div className="onb-hero" style={{ maxWidth: 400, width: "100%" }}>
-            {/* Wordmark */}
-            <div style={{ marginBottom: 48, textAlign: "center" }}>
-              <div style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: 72,
-                height: 72,
-                borderRadius: 22,
-                background: "linear-gradient(145deg, #0a84ff 0%, #5e5ce6 100%)",
-                boxShadow: "0 0 40px rgba(10,132,255,0.35)",
-                marginBottom: 20,
-              }}>
-                <IconDumbbell style={{ width: 36, height: 36, color: "#fff" }} />
-              </div>
-              <div style={{
-                fontSize: 13,
-                fontWeight: 600,
-                letterSpacing: 3,
-                textTransform: "uppercase",
-                color: "rgba(255,255,255,0.3)",
-                marginBottom: 12,
-              }}>
-                IronLog
-              </div>
-              <div style={{
-                fontSize: 28,
-                fontWeight: 700,
-                letterSpacing: -0.6,
-                color: "#fff",
-                lineHeight: 1.2,
-              }}>
-                Choose your language<br />
-                <span style={{ color: "rgba(255,255,255,0.35)", fontWeight: 500, fontSize: 22 }}>
-                  Wähle deine Sprache
-                </span>
-              </div>
+          <div style={{ maxWidth: 390, width: "100%", display: "flex", flexDirection: "column" }}>
+            <div style={{ marginBottom: 52 }}>
+              <p style={T.caption}>IronLog</p>
+              <h1 style={{ ...T.heading, fontSize: 44, letterSpacing: "-0.8px", marginTop: 14 }}>
+                Choose your<br />language
+              </h1>
+              <p style={{ ...T.body, marginTop: 10, color: "rgba(255,255,255,0.32)" }}>
+                Wähle deine Sprache
+              </p>
             </div>
 
-            {/* Language cards */}
-            <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {([
                 { code: "en" as Locale, name: "English", sub: "Continue in English" },
                 { code: "de" as Locale, name: "Deutsch", sub: "Auf Deutsch fortfahren" },
-              ]).map(({ code, name, sub }) => {
+              ]).map(({ code, name: lname, sub }) => {
                 const active = locale === code;
                 return (
-                  <button
-                    key={code}
-                    onClick={() => setLocale(code)}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      width: "100%",
-                      padding: "20px 22px",
-                      borderRadius: 18,
-                      border: `1.5px solid ${active ? "var(--primary)" : "rgba(255,255,255,0.09)"}`,
-                      background: active ? "rgba(10,132,255,0.13)" : "rgba(255,255,255,0.05)",
-                      cursor: "pointer",
-                      textAlign: "left",
-                      transition: "border-color 0.18s, background 0.18s",
-                    }}
-                  >
+                  <button key={code} onClick={() => setLocale(code)} style={active ? TILE_ACTIVE : TILE}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{
-                        fontSize: 20,
-                        fontWeight: 700,
-                        color: "#fff",
-                        letterSpacing: -0.3,
-                        marginBottom: 3,
-                      }}>
-                        {name}
+                      <div style={{ fontSize: 19, fontWeight: 600, color: "#fff", letterSpacing: "-0.3px", marginBottom: 2 }}>
+                        {lname}
                       </div>
-                      <div style={{
-                        fontSize: 14,
-                        color: "rgba(255,255,255,0.38)",
-                        fontWeight: 400,
-                      }}>
-                        {sub}
-                      </div>
+                      <div style={{ fontSize: 14, color: "rgba(255,255,255,0.36)" }}>{sub}</div>
                     </div>
-                    <div style={{
-                      width: 26,
-                      height: 26,
-                      borderRadius: "50%",
-                      border: `2px solid ${active ? "var(--primary)" : "rgba(255,255,255,0.18)"}`,
-                      background: active ? "var(--primary)" : "transparent",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                      transition: "border-color 0.18s, background 0.18s",
-                    }}>
-                      {active && <IconCheck style={{ width: 14, height: 14, color: "#fff" }} />}
-                    </div>
+                    <Radio active={active} />
                   </button>
                 );
               })}
             </div>
 
-            <div className="onb-actions" style={{ width: "100%", maxWidth: 400 }}>
-              <button
-                className="btn btn-primary btn-block"
-                style={{ height: 54, fontSize: 17, marginTop: 32 }}
-                onClick={() => go(1)}
-              >
-                {t.common.continue}
-              </button>
-            </div>
+            <Pill style={{ marginTop: 36 }} onClick={() => go(1)}>{t.common.continue}</Pill>
           </div>
         )}
 
-        {/* ── Step 1: Welcome ── */}
+        {/* ── 1 · Welcome ─────────────────────────────────────────────── */}
         {step === 1 && (
-          <div className="onb-hero">
-            <div className="onb-hero-icon">
-              <div className="onb-logo">
-                <IconDumbbell style={{ width: 60, height: 60, color: "#fff" }} />
+          <div style={{ maxWidth: 390, width: "100%", textAlign: "center" }}>
+            <div style={{ marginBottom: 40 }}>
+              <div style={{
+                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                width: 64, height: 64, borderRadius: 18,
+                background: "#0066cc", marginBottom: 32,
+              }}>
+                <IconDumbbell style={{ width: 32, height: 32, color: "#fff" }} />
               </div>
+              <h1 style={{ fontSize: 56, fontWeight: 600, letterSpacing: "-1.2px", lineHeight: 1.0, color: "#fff", margin: 0, marginBottom: 20 }}>
+                {t.onboarding.welcome}
+              </h1>
+              <p style={{ fontSize: 21, fontWeight: 300, lineHeight: 1.5, color: "rgba(255,255,255,0.55)", letterSpacing: "0", maxWidth: 280, margin: "0 auto" }}>
+                {t.onboarding.welcomeBody}
+              </p>
             </div>
-            <h1
-              className="t-hero center"
-              style={{
-                marginBottom: 14,
-                color: "#fff",
-                fontSize: 42,
-                fontWeight: 800,
-                letterSpacing: -1.5,
-              }}
-            >
-              {t.onboarding.welcome}
-            </h1>
-            <p className="onb-body center" style={{ fontSize: 19, lineHeight: 1.5 }}>
-              {t.onboarding.welcomeBody}
-            </p>
-            <div className="onb-actions">
-              <button
-                className="btn btn-primary btn-block"
-                style={{ height: 54, fontSize: 17, marginTop: 16 }}
-                onClick={() => go(2)}
-              >
-                {t.common.continue}
-              </button>
-            </div>
+            <Pill onClick={() => go(2)}>{t.common.continue}</Pill>
           </div>
         )}
 
-        {/* ── Step 2: Privacy ── */}
+        {/* ── 2 · Privacy ─────────────────────────────────────────────── */}
         {step === 2 && (
-          <div className="onb-hero">
-            <div className="onb-hero-icon">
-              <GlassIcon>
-                <IconLock style={{ width: 48, height: 48, color: "rgba(255,255,255,0.9)" }} />
-              </GlassIcon>
-            </div>
-            <h1
-              className="t-hero center"
-              style={{ marginBottom: 14, color: "#fff", fontSize: 30, fontWeight: 700, letterSpacing: -0.8 }}
-            >
-              {t.onboarding.privacyTitle}
-            </h1>
-            <p className="onb-body center">{t.onboarding.privacyBody}</p>
-            <div className="onb-actions">
-              <button
-                className="btn btn-primary btn-block"
-                style={{ height: 54, fontSize: 17 }}
-                onClick={() => go(3)}
-              >
-                {t.common.continue}
-              </button>
-            </div>
+          <div style={{ maxWidth: 390, width: "100%", textAlign: "center" }}>
+            <IconLock style={{ width: 52, height: 52, color: "rgba(255,255,255,0.85)", marginBottom: 36 }} />
+            <h1 style={{ ...T.heading, fontSize: 36, marginBottom: 16 }}>{t.onboarding.privacyTitle}</h1>
+            <p style={{ ...T.body, maxWidth: 320, margin: "0 auto 40px" }}>{t.onboarding.privacyBody}</p>
+            <Pill onClick={() => go(3)}>{t.common.continue}</Pill>
           </div>
         )}
 
-        {/* ── Step 3: Face ID ── */}
+        {/* ── 3 · Face ID ─────────────────────────────────────────────── */}
         {step === 3 && (
-          <div className="onb-hero">
-            <div className="onb-hero-icon">
-              <GlassIcon>
-                <IconFaceId style={{ width: 52, height: 52, color: "var(--primary)" }} />
-              </GlassIcon>
-            </div>
-            <h1
-              className="t-hero center"
-              style={{ marginBottom: 14, color: "#fff", fontSize: 30, fontWeight: 700, letterSpacing: -0.8 }}
+          <div style={{ maxWidth: 390, width: "100%", textAlign: "center" }}>
+            <IconFaceId style={{ width: 56, height: 56, color: "#0066cc", marginBottom: 36 }} />
+            <h1 style={{ ...T.heading, fontSize: 36, marginBottom: 16 }}>{t.onboarding.faceIdTitle}</h1>
+            <p style={{ ...T.body, maxWidth: 320, margin: "0 auto 40px" }}>{t.onboarding.faceIdBody}</p>
+            <Pill onClick={enableFaceId}>{t.onboarding.enableFaceId}</Pill>
+            <button
+              onClick={() => go(4)}
+              style={{ marginTop: 16, fontSize: 15, color: "rgba(255,255,255,0.36)", background: "none", border: "none", cursor: "pointer", padding: "8px 0", width: "100%" }}
             >
-              {t.onboarding.faceIdTitle}
-            </h1>
-            <p className="onb-body center">{t.onboarding.faceIdBody}</p>
-            <div className="onb-actions">
-              <button
-                className="btn btn-primary btn-block"
-                style={{ height: 54, fontSize: 17 }}
-                onClick={enableFaceId}
-              >
-                {t.onboarding.enableFaceId}
-              </button>
-              <button
-                className="btn btn-text btn-block"
-                style={{ marginTop: 4, color: "rgba(255,255,255,0.5)" }}
-                onClick={() => go(4)}
-              >
-                {t.onboarding.maybeLater}
-              </button>
-            </div>
+              {t.onboarding.maybeLater}
+            </button>
           </div>
         )}
 
-        {/* ── Step 4: Profile ── */}
+        {/* ── 4 · Profile ─────────────────────────────────────────────── */}
         {step === 4 && (
-          <div className="onb-form">
-            <h1
-              className="t-display"
-              style={{ color: "#fff", marginBottom: 6, fontSize: 30, fontWeight: 700 }}
-            >
-              {t.onboarding.aboutTitle}
-            </h1>
-            <p style={{ color: "rgba(255,255,255,0.45)", marginBottom: 28, fontSize: 16 }}>
-              {t.onboarding.aboutSub}
-            </p>
+          <div style={{ maxWidth: 420, width: "100%" }}>
+            <h1 style={{ ...T.heading, fontSize: 36, marginBottom: 8 }}>{t.onboarding.aboutTitle}</h1>
+            <p style={{ ...T.body, marginBottom: 36 }}>{t.onboarding.aboutSub}</p>
 
-            <FormLabel>{t.onboarding.name}</FormLabel>
+            <Label>{t.onboarding.name}</Label>
             <input
               className="input"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={t.onboarding.namePlaceholder}
-              style={{ background: "rgba(255,255,255,0.08)", color: "#fff", borderColor: "rgba(255,255,255,0.12)" }}
+              style={inputStyle}
             />
 
-            <FormLabel>{t.onboarding.unitsLabel}</FormLabel>
-            <div className="segmented" style={{ background: "rgba(255,255,255,0.08)" }}>
-              <button
-                className={units === "metric" ? "on" : ""}
-                onClick={() => setUnits("metric")}
-                style={{ color: units === "metric" ? undefined : "rgba(255,255,255,0.5)" }}
-              >
-                {t.settings.kilograms}
-              </button>
-              <button
-                className={units === "imperial" ? "on" : ""}
-                onClick={() => setUnits("imperial")}
-                style={{ color: units === "imperial" ? undefined : "rgba(255,255,255,0.5)" }}
-              >
-                {t.settings.pounds}
-              </button>
+            <Label>{t.onboarding.unitsLabel}</Label>
+            <div style={{ display: "flex", gap: 10 }}>
+              {(["metric", "imperial"] as Units[]).map((u) => (
+                <button
+                  key={u}
+                  onClick={() => setUnits(u)}
+                  style={{
+                    ...TILE,
+                    ...(units === u ? TILE_ACTIVE : {}),
+                    flex: 1, justifyContent: "center",
+                    padding: "14px 0", fontWeight: 600,
+                    fontSize: 15, color: "#fff",
+                  }}
+                >
+                  {u === "metric" ? "kg" : "lb"}
+                </button>
+              ))}
             </div>
 
-            <FormLabel>{t.onboarding.bodyweightLabel(unitLabel)}</FormLabel>
+            <Label>{t.onboarding.bodyweightLabel(unitLabel)}</Label>
             <input
               className="input"
               type="number"
@@ -399,146 +259,77 @@ export function Onboarding() {
               value={bw}
               onChange={(e) => setBw(e.target.value)}
               placeholder={t.common.optional}
-              style={{ background: "rgba(255,255,255,0.08)", color: "#fff", borderColor: "rgba(255,255,255,0.12)" }}
+              style={inputStyle}
             />
 
-            <FormLabel>{t.onboarding.goalLabel}</FormLabel>
-            <div className="onb-goals">
-              {GOALS.map((g) => (
-                <button
-                  key={g.id}
-                  className={`onb-goal${goal === g.id ? " on" : ""}`}
-                  onClick={() => setGoal(g.id)}
-                  style={{
-                    background: goal === g.id ? "rgba(10,132,255,0.2)" : "rgba(255,255,255,0.07)",
-                    borderColor: goal === g.id ? "var(--primary)" : "transparent",
-                  }}
-                >
-                  <span className="onb-goal-label" style={{ color: "#fff" }}>{g.label}</span>
-                  <span className="onb-goal-sub" style={{ color: "rgba(255,255,255,0.45)" }}>{g.sub}</span>
-                </button>
-              ))}
-            </div>
-
-            <div className="onb-actions" style={{ marginTop: 28 }}>
-              <button
-                className="btn btn-primary btn-block"
-                style={{ height: 54, fontSize: 17 }}
-                onClick={() => go(5)}
-              >
-                {t.common.continue}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ── Step 5: Split ── */}
-        {step === 5 && (
-          <div className="onb-form">
-            <h1
-              className="t-display"
-              style={{ color: "#fff", marginBottom: 6, fontSize: 30, fontWeight: 700 }}
-            >
-              {t.onboarding.splitTitle}
-            </h1>
-            <p style={{ color: "rgba(255,255,255,0.45)", marginBottom: 24, fontSize: 16 }}>
-              {t.onboarding.splitSub}
-            </p>
-            <div className="col gap-sm">
-              {SPLITS.map((s) => {
-                const splitT = t.splits[s.id];
+            <Label>{t.onboarding.goalLabel}</Label>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+              {GOALS.map((g) => {
+                const active = goal === g.id;
                 return (
                   <button
-                    key={s.id}
-                    className={`onb-split${split === s.id ? " on" : ""}`}
-                    onClick={() => setSplit(s.id)}
+                    key={g.id}
+                    onClick={() => setGoal(g.id)}
                     style={{
-                      background: split === s.id ? "rgba(10,132,255,0.15)" : "rgba(255,255,255,0.07)",
-                      borderColor: split === s.id ? "var(--primary)" : "rgba(255,255,255,0.1)",
+                      ...(active ? TILE_ACTIVE : TILE),
+                      flexDirection: "column", alignItems: "flex-start",
+                      padding: "14px 16px", gap: 3,
                     }}
                   >
-                    <div className="grow" style={{ textAlign: "left" }}>
-                      <div className="t-headline" style={{ color: "#fff" }}>{splitT.name}</div>
-                      <span style={{ fontSize: 13, color: "rgba(255,255,255,0.45)" }}>
-                        {splitT.description}
-                      </span>
-                    </div>
-                    <div
-                      className={`onb-radio${split === s.id ? " on" : ""}`}
-                      style={{
-                        borderColor: split === s.id ? "var(--primary)" : "rgba(255,255,255,0.25)",
-                      }}
-                    >
-                      {split === s.id && <IconCheck style={{ width: 16, height: 16 }} />}
-                    </div>
+                    <span style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{g.label}</span>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.38)" }}>{g.sub}</span>
                   </button>
                 );
               })}
             </div>
-            <div className="onb-actions" style={{ marginTop: 28 }}>
-              <button
-                className="btn btn-primary btn-block"
-                style={{ height: 54, fontSize: 17 }}
-                onClick={() => go(6)}
-              >
-                {t.common.continue}
-              </button>
-            </div>
+
+            <Pill style={{ marginTop: 36 }} onClick={() => go(5)}>{t.common.continue}</Pill>
           </div>
         )}
 
-        {/* ── Step 6: Progress photos + Finish ── */}
+        {/* ── 5 · Split ───────────────────────────────────────────────── */}
+        {step === 5 && (
+          <div style={{ maxWidth: 420, width: "100%" }}>
+            <h1 style={{ ...T.heading, fontSize: 36, marginBottom: 8 }}>{t.onboarding.splitTitle}</h1>
+            <p style={{ ...T.body, marginBottom: 28 }}>{t.onboarding.splitSub}</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {SPLITS.map((s) => {
+                const splitT = t.splits[s.id];
+                const active = split === s.id;
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => setSplit(s.id)}
+                    style={active ? TILE_ACTIVE : TILE}
+                  >
+                    <div style={{ flex: 1, textAlign: "left", minWidth: 0 }}>
+                      <div style={{ fontSize: 16, fontWeight: 600, color: "#fff", marginBottom: 2 }}>{splitT.name}</div>
+                      <div style={{ fontSize: 13, color: "rgba(255,255,255,0.38)" }}>{splitT.description}</div>
+                    </div>
+                    <Radio active={active} />
+                  </button>
+                );
+              })}
+            </div>
+            <Pill style={{ marginTop: 36 }} onClick={() => go(6)}>{t.common.continue}</Pill>
+          </div>
+        )}
+
+        {/* ── 6 · Finish ──────────────────────────────────────────────── */}
         {step === 6 && (
-          <div className="onb-hero">
-            <div className="onb-hero-icon">
-              <div
-                style={{
-                  position: "relative",
-                  width: 110,
-                  height: 130,
-                  borderRadius: 24,
-                  background: "rgba(255,255,255,0.07)",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  overflow: "hidden",
-                  boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
-                }}
-              >
-                <MuscleIllustration group="chest" size={70} />
-                <div style={{
-                  position: "absolute",
-                  inset: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  opacity: 0.28,
-                  transform: "translateX(12px)",
-                  color: "var(--primary)",
-                }}>
-                  <MuscleIllustration group="chest" size={70} />
-                </div>
-              </div>
+          <div style={{ maxWidth: 390, width: "100%", textAlign: "center" }}>
+            <div style={{
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              width: 64, height: 64, borderRadius: 18,
+              background: "#0066cc", marginBottom: 36,
+            }}>
+              <IconDumbbell style={{ width: 32, height: 32, color: "#fff" }} />
             </div>
-            <h1
-              className="t-hero center"
-              style={{ marginBottom: 14, color: "#fff", fontSize: 30, fontWeight: 700, letterSpacing: -0.8 }}
-            >
-              {t.onboarding.photosTitle}
-            </h1>
-            <p className="onb-body center">{t.onboarding.photosBody}</p>
-            <div className="onb-actions">
-              <button
-                className="btn btn-primary btn-block"
-                style={{ height: 54, fontSize: 17 }}
-                onClick={finish}
-                disabled={busy}
-              >
-                <IconCamera style={{ width: 20, height: 20 }} />
-                {busy ? t.onboarding.settingUp : t.onboarding.startTraining}
-              </button>
-            </div>
+            <h1 style={{ ...T.heading, fontSize: 40, marginBottom: 16 }}>{t.onboarding.photosTitle}</h1>
+            <p style={{ ...T.body, maxWidth: 320, margin: "0 auto 44px" }}>{t.onboarding.photosBody}</p>
+            <Pill onClick={finish} disabled={busy}>
+              {busy ? t.onboarding.settingUp : t.onboarding.startTraining}
+            </Pill>
           </div>
         )}
       </div>
@@ -549,47 +340,70 @@ export function Onboarding() {
           className="onb-back"
           onClick={() => go(step - 1)}
           aria-label={t.common.back}
-          style={{ background: "rgba(255,255,255,0.1)", color: "#fff" }}
+          style={{ background: "rgba(255,255,255,0.08)", color: "#fff" }}
         >
-          <IconChevron style={{ width: 22, height: 22, transform: "rotate(180deg)" }} />
+          <IconChevron style={{ width: 20, height: 20, transform: "rotate(180deg)" }} />
         </button>
       )}
     </div>
   );
 }
 
-function GlassIcon({ children }: { children: React.ReactNode }) {
+/* ── Helpers ─────────────────────────────────────────────────────────── */
+
+const inputStyle: React.CSSProperties = {
+  background: "rgba(255,255,255,0.07)",
+  color: "#fff",
+  borderColor: "rgba(255,255,255,0.1)",
+};
+
+function Pill({
+  children, onClick, disabled, style,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  style?: React.CSSProperties;
+}) {
   return (
-    <div
+    <button
+      className="btn btn-block"
+      onClick={onClick}
+      disabled={disabled}
       style={{
-        width: 110,
-        height: 110,
-        borderRadius: 30,
-        background: "rgba(255,255,255,0.08)",
-        border: "1px solid rgba(255,255,255,0.14)",
-        backdropFilter: "blur(20px)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
+        height: 50, fontSize: 17, fontWeight: 400, letterSpacing: "-0.374px",
+        borderRadius: 9999, background: "#0066cc", color: "#fff",
+        border: "none", cursor: disabled ? "default" : "pointer",
+        opacity: disabled ? 0.6 : 1, transition: "transform 0.1s ease, opacity 0.15s",
+        ...style,
       }}
     >
       {children}
+    </button>
+  );
+}
+
+function Radio({ active }: { active: boolean }) {
+  return (
+    <div style={{
+      width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+      border: `2px solid ${active ? "#0066cc" : "rgba(255,255,255,0.2)"}`,
+      background: active ? "#0066cc" : "transparent",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      transition: "all 0.16s ease", marginLeft: 12,
+    }}>
+      {active && <IconCheck style={{ width: 11, height: 11, color: "#fff" }} />}
     </div>
   );
 }
 
-function FormLabel({ children }: { children: React.ReactNode }) {
+function Label({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      style={{
-        fontSize: 12,
-        fontWeight: 700,
-        letterSpacing: 0.5,
-        textTransform: "uppercase",
-        color: "rgba(255,255,255,0.4)",
-        margin: "20px 0 8px",
-      }}
-    >
+    <div style={{
+      fontSize: 12, fontWeight: 600, letterSpacing: "0.06em",
+      textTransform: "uppercase", color: "rgba(255,255,255,0.36)",
+      margin: "22px 0 8px",
+    }}>
       {children}
     </div>
   );
