@@ -157,6 +157,7 @@ export interface Photo {
 export type Theme = "system" | "light" | "dark";
 export type Units = "metric" | "imperial";
 export type TrainingGoal = "bulk" | "maintain" | "cut";
+export type Locale = "en" | "de";
 
 /** Single-row user settings document. */
 export interface Settings {
@@ -174,6 +175,8 @@ export interface Settings {
   trainingGoal?: TrainingGoal;
   /** True once first-launch onboarding has completed. */
   onboarded?: boolean;
+  /** UI language. */
+  language?: Locale;
   /** Schema version for export/import migration. */
   schemaVersion: number;
   createdAt: number;

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { TopBar } from "@/components/TopBar";
 import { MuscleBadge } from "@/components/MuscleIllustration";
 import { IconCopy, IconTrash, IconTrophy } from "@/components/Icons";
-import { useApp, useUnits } from "@/components/AppProvider";
+import { useApp, useI18n, useUnits } from "@/components/AppProvider";
 import { templateRepo, workoutRepo } from "@/lib/repo";
 import {
   formatDate,
@@ -22,6 +22,7 @@ function ViewInner() {
   const id = params.get("id");
   const units = useUnits();
   const { toast } = useApp();
+  const t = useI18n();
   const [workout, setWorkout] = useState<Workout | null | undefined>(undefined);
 
   useEffect(() => {
@@ -35,7 +36,7 @@ function ViewInner() {
   async function repeat() {
     if (!workout) return;
     const existing = (await workoutRepo.all()).find((w) => w.inProgress);
-    if (existing && !confirm("You have a workout in progress. Replace it?")) {
+    if (existing && !confirm(t.workoutView.repeatConfirm)) {
       return;
     }
     if (existing) await workoutRepo.remove(existing.id);
@@ -66,18 +67,18 @@ function ViewInner() {
 
   async function remove() {
     if (!workout) return;
-    if (!confirm("Delete this workout and its PRs?")) return;
+    if (!confirm(t.workoutView.deleteConfirm)) return;
     await workoutRepo.remove(workout.id);
-    toast("Workout deleted");
+    toast(t.workoutView.workoutDeleted);
     router.replace("/workout");
   }
 
   async function saveTemplate() {
     if (!workout) return;
-    const title = prompt("Template name", workout.title);
+    const title = prompt(t.workoutView.templateNamePrompt, workout.title);
     if (!title) return;
     await templateRepo.save(templateRepo.fromWorkout(workout, title));
-    toast("Template saved");
+    toast(t.workoutView.templateSaved);
   }
 
   if (workout === undefined) {
@@ -92,7 +93,7 @@ function ViewInner() {
     return (
       <>
         <TopBar title="Workout" back />
-        <div className="empty">Workout not found.</div>
+        <div className="empty">{t.workoutView.notFound}</div>
       </>
     );
   }
@@ -130,23 +131,23 @@ function ViewInner() {
         <div className="dash-grid" style={{ marginBottom: 20 }}>
           <div className="card-parchment center">
             <div className="stat-value">{workout.exercises.length}</div>
-            <span className="muted" style={{ fontSize: 13 }}>exercises</span>
+            <span className="muted" style={{ fontSize: 13 }}>{t.workoutView.exercisesLabel}</span>
           </div>
           <div className="card-parchment center">
             <div className="stat-value">{totalSets}</div>
-            <span className="muted" style={{ fontSize: 13 }}>sets</span>
+            <span className="muted" style={{ fontSize: 13 }}>{t.workoutView.setsLabel}</span>
           </div>
           <div className="card-parchment center">
             <div className="stat-value" style={{ fontSize: 22 }}>
               {formatWeight(totalVolume, units)}
             </div>
-            <span className="muted" style={{ fontSize: 13 }}>volume</span>
+            <span className="muted" style={{ fontSize: 13 }}>{t.workoutView.volumeLabel}</span>
           </div>
           <div className="card-parchment center">
             <div className="stat-value" style={{ color: prCount ? "var(--pr-gold)" : undefined }}>
               {prCount}
             </div>
-            <span className="muted" style={{ fontSize: 13 }}>PRs</span>
+            <span className="muted" style={{ fontSize: 13 }}>{t.workoutView.prsLabel}</span>
           </div>
         </div>
 
@@ -181,7 +182,7 @@ function ViewInner() {
 
         <div className="row gap-sm" style={{ marginTop: 8 }}>
           <button className="btn btn-primary grow" onClick={repeat}>
-            Repeat workout
+            {t.workoutView.repeatWorkout}
           </button>
           <button className="btn btn-ghost" onClick={saveTemplate} aria-label="Save as template">
             <IconCopy style={{ width: 20, height: 20 }} />

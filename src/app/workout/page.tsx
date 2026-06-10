@@ -13,10 +13,14 @@ import {
 } from "@/components/Icons";
 import { templateRepo, workoutRepo } from "@/lib/repo";
 import { uid, relativeDay } from "@/lib/utils";
+import { useI18n, useLocale } from "@/components/AppProvider";
 import type { Template, Workout } from "@/types";
 
 export default function WorkoutPage() {
   const router = useRouter();
+  const t = useI18n();
+  const locale = useLocale();
+  const defaultTitle = useDefaultTitle();
   const workouts = useLiveQuery(() => workoutRepo.all(), [], []);
   const templates = useLiveQuery(() => templateRepo.all(), [], []);
 
@@ -73,7 +77,7 @@ export default function WorkoutPage() {
   }
 
   async function deleteTemplate(id: string) {
-    if (confirm("Delete this template?")) await templateRepo.remove(id);
+    if (confirm(t.workout.deleteTemplateConfirm)) await templateRepo.remove(id);
   }
 
   return (
@@ -81,7 +85,7 @@ export default function WorkoutPage() {
       <TopBar title="Workout" />
       <div className="page">
         <h1 className="t-hero enter" style={{ marginBottom: 20 }}>
-          Workout
+          {t.workout.title}
         </h1>
 
         {/* In-progress banner or start button */}
@@ -108,7 +112,7 @@ export default function WorkoutPage() {
                     opacity: 0.82,
                   }}
                 >
-                  In progress
+                  {t.workout.inProgress}
                 </span>
                 <div
                   style={{
@@ -122,7 +126,7 @@ export default function WorkoutPage() {
                   {inProgress.title}
                 </div>
                 <span style={{ fontSize: 14, opacity: 0.82, marginTop: 2, display: "block" }}>
-                  {inProgress.exercises.length} exercise{inProgress.exercises.length !== 1 ? "s" : ""} · Tap to resume
+                  {t.workout.exercises(inProgress.exercises.length)} · {t.workout.tapToResume}
                 </span>
               </div>
               <div
@@ -148,7 +152,7 @@ export default function WorkoutPage() {
             onClick={startEmpty}
           >
             <IconPlus style={{ width: 22, height: 22 }} />
-            Start workout
+            {t.workout.startWorkout}
           </button>
         )}
 
@@ -156,11 +160,11 @@ export default function WorkoutPage() {
         {templates && templates.length > 0 && (
           <section style={{ marginBottom: 28 }}>
             <h2 className="t-caption-strong" style={{ marginBottom: 10 }}>
-              Templates
+              {t.workout.templates}
             </h2>
             <div className="list-group">
-              {templates.map((t) => (
-                <div key={t.id} className="list-row">
+              {templates.map((tmpl) => (
+                <div key={tmpl.id} className="list-row">
                   <button
                     className="grow row gap-sm"
                     style={{
@@ -170,7 +174,7 @@ export default function WorkoutPage() {
                       minWidth: 0,
                       cursor: "pointer",
                     }}
-                    onClick={() => startFromTemplate(t)}
+                    onClick={() => startFromTemplate(tmpl)}
                   >
                     <div
                       className="muscle-badge"
@@ -185,15 +189,15 @@ export default function WorkoutPage() {
                       />
                     </div>
                     <div style={{ minWidth: 0 }}>
-                      <div className="t-headline">{t.title}</div>
+                      <div className="t-headline">{tmpl.title}</div>
                       <span className="muted" style={{ fontSize: 13 }}>
-                        {t.exercises.length} exercise{t.exercises.length !== 1 ? "s" : ""}
+                        {t.workout.exercises(tmpl.exercises.length)}
                       </span>
                     </div>
                   </button>
                   <button
                     className="btn btn-text btn-danger"
-                    onClick={() => deleteTemplate(t.id)}
+                    onClick={() => deleteTemplate(tmpl.id)}
                     aria-label="Delete template"
                   >
                     <IconTrash style={{ width: 18, height: 18 }} />
@@ -207,12 +211,12 @@ export default function WorkoutPage() {
         {/* History */}
         <section>
           <h2 className="t-caption-strong" style={{ marginBottom: 10 }}>
-            History
+            {t.workout.history}
           </h2>
           {history.length === 0 ? (
             <div className="empty">
               <IconDumbbell className="empty-icon" />
-              <p>No workouts yet. Start your first session above.</p>
+              <p>{t.workout.noWorkoutsYet}</p>
             </div>
           ) : (
             <div className="list-group">
@@ -225,8 +229,8 @@ export default function WorkoutPage() {
                   <div className="grow" style={{ minWidth: 0 }}>
                     <div className="t-headline">{w.title}</div>
                     <span className="muted" style={{ fontSize: 13 }}>
-                      {relativeDay(w.date)} · {w.exercises.length} exercises ·{" "}
-                      {w.exercises.reduce((n, e) => n + e.sets.length, 0)} sets
+                      {relativeDay(w.date, locale)} · {t.workout.exercises(w.exercises.length)} ·{" "}
+                      {t.workout.sets(w.exercises.reduce((n, e) => n + e.sets.length, 0))}
                     </span>
                   </div>
                   <WorkoutGroups workout={w} />
@@ -256,10 +260,13 @@ function WorkoutGroups({ workout }: { workout: Workout }) {
   );
 }
 
-function defaultTitle(): string {
-  const h = new Date().getHours();
-  if (h < 11) return "Morning Workout";
-  if (h < 16) return "Midday Workout";
-  if (h < 21) return "Evening Workout";
-  return "Late Workout";
+function useDefaultTitle() {
+  const t = useI18n();
+  return () => {
+    const h = new Date().getHours();
+    if (h < 11) return t.workout.morning;
+    if (h < 16) return t.workout.midday;
+    if (h < 21) return t.workout.evening;
+    return t.workout.late;
+  };
 }

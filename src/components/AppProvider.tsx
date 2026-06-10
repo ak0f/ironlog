@@ -16,6 +16,7 @@ import {
 } from "react";
 import { exerciseRepo, settingsRepo } from "@/lib/repo";
 import { BUNDLED_EXERCISES } from "@/data/exercises";
+import { translations, type Locale } from "@/lib/i18n";
 import type { Settings } from "@/types";
 
 interface Toast {
@@ -112,4 +113,17 @@ export function useApp(): AppContextValue {
 export function useUnits(): "metric" | "imperial" {
   const { settings } = useApp();
   return settings?.units ?? "metric";
+}
+
+/** Convenience: returns the full translation object for the current locale. */
+export function useI18n() {
+  const { settings } = useApp();
+  const locale: Locale = settings?.language ?? "en";
+  return translations[locale];
+}
+
+/** Convenience: current locale. */
+export function useLocale(): Locale {
+  const { settings } = useApp();
+  return settings?.language ?? "en";
 }

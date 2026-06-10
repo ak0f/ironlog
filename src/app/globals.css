@@ -1173,18 +1173,35 @@ a {
   }
 }
 
-/* --- Onboarding --- */
+/* --- Onboarding (redesigned) --- */
 .onb {
   position: fixed;
   inset: 0;
   z-index: 90;
-  background: var(--canvas);
+  background: #000;
   display: flex;
   flex-direction: column;
-  padding: calc(var(--safe-top) + 20px) var(--lg)
+  padding: calc(var(--safe-top) + 16px) var(--lg)
     calc(var(--safe-bottom) + 24px);
   overflow: hidden;
 }
+
+/* Progress bar (replaces dots) */
+.onb-progress {
+  height: 3px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  margin-bottom: 0;
+  overflow: hidden;
+}
+.onb-progress-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 2px;
+  transition: width 0.5s var(--spring);
+}
+
+/* Legacy dots (kept for fallback) */
 .onb-dots {
   display: flex;
   gap: 7px;
@@ -1202,6 +1219,34 @@ a {
   width: 22px;
   border-radius: 4px;
   background: var(--primary);
+}
+
+/* Background orb decorations */
+.onb-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.onb-orb-blue {
+  width: 320px;
+  height: 320px;
+  top: -80px;
+  right: -80px;
+  background: radial-gradient(circle, rgba(10,132,255,0.22) 0%, transparent 70%);
+}
+.onb-orb-purple {
+  width: 260px;
+  height: 260px;
+  bottom: 60px;
+  left: -80px;
+  background: radial-gradient(circle, rgba(191,90,242,0.16) 0%, transparent 70%);
+}
+.onb-orb-fire {
+  width: 200px;
+  height: 200px;
+  bottom: 120px;
+  right: -40px;
+  background: radial-gradient(circle, rgba(255,107,0,0.12) 0%, transparent 70%);
 }
 .onb-step {
   flex: 1;
@@ -1242,14 +1287,64 @@ a {
   animation: enter-up 0.6s var(--ease-out) 0.1s both;
 }
 .onb-logo {
-  width: 104px;
-  height: 104px;
-  border-radius: 26px;
-  background: linear-gradient(150deg, var(--primary), var(--primary-strong));
+  width: 120px;
+  height: 120px;
+  border-radius: 28px;
+  background: linear-gradient(150deg, #1a8aff 0%, #0055cc 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 16px 50px var(--primary-tint);
+  box-shadow: 0 20px 60px rgba(10,132,255,0.45), 0 4px 16px rgba(0,0,0,0.4);
+}
+
+/* Language selection cards */
+.onb-lang-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 20px 22px;
+  border-radius: var(--r-xl);
+  background: rgba(255,255,255,0.06);
+  border: 1.5px solid rgba(255,255,255,0.1);
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.16s var(--spring);
+  width: 100%;
+  text-align: left;
+}
+.onb-lang-card:active {
+  transform: scale(0.97);
+}
+.onb-lang-card.on {
+  background: rgba(10,132,255,0.14);
+  border-color: var(--primary);
+}
+.onb-lang-flag {
+  font-size: 40px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.onb-lang-name {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  color: #fff;
+}
+.onb-lang-sub {
+  font-size: 14px;
+  color: rgba(255,255,255,0.5);
+  margin-top: 2px;
+}
+.onb-lang-check {
+  margin-left: auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
 }
 .onb-glass-icon {
   width: 104px;
@@ -1265,8 +1360,8 @@ a {
 }
 .onb-body {
   font-size: 18px;
-  line-height: 1.5;
-  color: var(--ink-muted-48);
+  line-height: 1.55;
+  color: rgba(255,255,255,0.55);
   margin: 0 0 8px;
   max-width: 340px;
 }

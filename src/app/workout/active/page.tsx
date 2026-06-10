@@ -12,7 +12,7 @@ import {
   IconPlus,
   IconTrash,
 } from "@/components/Icons";
-import { useApp, useUnits } from "@/components/AppProvider";
+import { useApp, useI18n, useUnits } from "@/components/AppProvider";
 import { templateRepo, workoutRepo } from "@/lib/repo";
 import { fromKg, toKg, uid, unitLabel } from "@/lib/utils";
 import type {
@@ -40,6 +40,7 @@ function muscleColor(group: string): string {
 export default function ActiveWorkoutPage() {
   const router = useRouter();
   const units = useUnits();
+  const t = useI18n();
   const { toast } = useApp();
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [loading, setLoading] = useState(true);
@@ -155,7 +156,7 @@ export default function ActiveWorkoutPage() {
     if (!workout) return;
     const hasSets = workout.exercises.some((e) => e.sets.some((s) => s.done));
     if (!hasSets) {
-      if (!confirm("No sets marked done. Finish anyway?")) return;
+      if (!confirm(t.activeWorkout.noSetsDoneConfirm)) return;
     }
     if (saveTimer.current) clearTimeout(saveTimer.current);
     const finalized: Workout = {
@@ -164,16 +165,16 @@ export default function ActiveWorkoutPage() {
     };
     const newPRs = await workoutRepo.save(finalized, true);
     if (newPRs.length > 0) {
-      toast(`🏆 ${newPRs.length} new PR${newPRs.length === 1 ? "" : "s"}!`);
+      toast(t.activeWorkout.newPRs(newPRs.length));
     } else {
-      toast("Workout saved");
+      toast(t.activeWorkout.workoutSaved);
     }
     router.replace(`/workout/view?id=${workout.id}`);
   }
 
   async function discard() {
     if (!workout) return;
-    if (!confirm("Discard this workout? This cannot be undone.")) return;
+    if (!confirm(t.activeWorkout.discardConfirm)) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     await workoutRepo.remove(workout.id);
     router.replace("/workout");
@@ -181,10 +182,10 @@ export default function ActiveWorkoutPage() {
 
   async function saveTemplate() {
     if (!workout || workout.exercises.length === 0) return;
-    const title = prompt("Template name", workout.title);
+    const title = prompt(t.activeWorkout.templateNamePrompt, workout.title);
     if (!title) return;
     await templateRepo.save(templateRepo.fromWorkout(workout, title));
-    toast("Template saved");
+    toast(t.activeWorkout.templateSaved);
   }
 
   if (loading || !workout) {
@@ -213,7 +214,7 @@ export default function ActiveWorkoutPage() {
             style={{ fontWeight: 600, padding: "8px 18px", minHeight: 36, fontSize: 15 }}
             onClick={finish}
           >
-            Finish
+            {t.activeWorkout.finish}
           </button>
         }
       />
@@ -247,7 +248,7 @@ export default function ActiveWorkoutPage() {
               className="muted"
               style={{ fontSize: 14 }}
             >
-              {doneSets}/{totalSets} sets done
+              {doneSets}/{totalSets} {t.activeWorkout.setsDone}
             </span>
             {totalSets > 0 && (
               <span
@@ -390,7 +391,7 @@ export default function ActiveWorkoutPage() {
                     style={{ fontSize: 14, padding: "10px 14px", minHeight: 38 }}
                     onClick={() => addSet(ex.id)}
                   >
-                    <IconPlus style={{ width: 16, height: 16 }} /> Add set
+                    <IconPlus style={{ width: 16, height: 16 }} /> {t.activeWorkout.addSet}
                   </button>
                   {ex.sets.length > 1 && (
                     <button
@@ -416,7 +417,7 @@ export default function ActiveWorkoutPage() {
           style={{ marginTop: 16, fontSize: 15 }}
           onClick={() => setPickerOpen(true)}
         >
-          <IconPlus style={{ width: 20, height: 20 }} /> Add exercise
+          <IconPlus style={{ width: 20, height: 20 }} /> {t.activeWorkout.addExercise}
         </button>
 
         <div className="divider" style={{ margin: "20px 0" }} />
@@ -429,14 +430,14 @@ export default function ActiveWorkoutPage() {
             onClick={saveTemplate}
             disabled={workout.exercises.length === 0}
           >
-            <IconCopy style={{ width: 17, height: 17 }} /> Save as template
+            <IconCopy style={{ width: 17, height: 17 }} /> {t.activeWorkout.saveAsTemplate}
           </button>
           <button
             className="btn btn-ghost btn-danger grow"
             style={{ fontSize: 14, minHeight: 44 }}
             onClick={discard}
           >
-            <IconTrash style={{ width: 17, height: 17 }} /> Discard
+            <IconTrash style={{ width: 17, height: 17 }} /> {t.activeWorkout.discard}
           </button>
         </div>
 
@@ -446,7 +447,7 @@ export default function ActiveWorkoutPage() {
           style={{ height: 54, fontSize: 17, letterSpacing: -0.3, marginBottom: 8 }}
           onClick={finish}
         >
-          Finish workout
+          {t.activeWorkout.finishWorkout}
         </button>
       </div>
 

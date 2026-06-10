@@ -111,6 +111,7 @@ export const settingsSchema = z.object({
   displayName: z.string().optional(),
   trainingGoal: z.enum(["bulk", "maintain", "cut"]).optional(),
   onboarded: z.boolean().optional(),
+  language: z.enum(["en", "de"]).optional(),
   schemaVersion: z.number(),
   createdAt: z.number(),
   updatedAt: z.number(),

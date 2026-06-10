@@ -11,7 +11,7 @@ import {
   IconLock,
   IconUpload,
 } from "@/components/Icons";
-import { useApp } from "@/components/AppProvider";
+import { useApp, useI18n } from "@/components/AppProvider";
 import {
   backupFilename,
   downloadBlob,
@@ -23,10 +23,11 @@ import {
   registerBiometric,
 } from "@/lib/webauthn";
 import { fromKg, toKg } from "@/lib/utils";
-import type { Theme, Units } from "@/types";
+import type { Locale, Theme, Units } from "@/types";
 
 export default function SettingsPage() {
   const { settings, updateSettings, toast } = useApp();
+  const t = useI18n();
   const [exportOpen, setExportOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [pass, setPass] = useState("");
@@ -42,24 +43,27 @@ export default function SettingsPage() {
   async function setUnits(u: Units) {
     await updateSettings({ units: u });
   }
-  async function setTheme(t: Theme) {
-    await updateSettings({ theme: t });
+  async function setTheme(th: Theme) {
+    await updateSettings({ theme: th });
+  }
+  async function setLanguage(lang: Locale) {
+    await updateSettings({ language: lang });
   }
 
   async function doExport() {
     if (pass.length < 6) {
-      toast("Passphrase must be at least 6 characters");
+      toast(t.settings.passphraseMin);
       return;
     }
     setBusy(true);
     try {
       const blob = await exportBackup(pass);
       downloadBlob(blob, backupFilename());
-      toast("Backup exported");
+      toast(t.settings.backupExported);
       setExportOpen(false);
       setPass("");
     } catch {
-      toast("Export failed");
+      toast(t.settings.exportFailed);
     } finally {
       setBusy(false);
     }
@@ -88,7 +92,7 @@ export default function SettingsPage() {
       setPass("");
       importBytes.current = null;
     } catch (err) {
-      toast(err instanceof Error ? err.message : "Import failed");
+      toast(err instanceof Error ? err.message : t.settings.importFailed);
     } finally {
       setBusy(false);
     }
@@ -97,7 +101,7 @@ export default function SettingsPage() {
   async function enableBiometric() {
     const available = await isPlatformAuthenticatorAvailable();
     if (!available) {
-      toast("Biometric authentication isn't available on this device");
+      toast(t.settings.biometricNotAvailable);
       return;
     }
     try {
@@ -106,14 +110,14 @@ export default function SettingsPage() {
         webauthnCredentialId: credentialId,
         biometricLockEnabled: true,
       });
-      toast("Biometric lock enabled");
+      toast(t.settings.biometricEnabled);
     } catch {
-      toast("Could not enable biometric lock");
+      toast(t.settings.biometricError);
     }
   }
   async function disableBiometric() {
     await updateSettings({ biometricLockEnabled: false });
-    toast("Biometric lock disabled");
+    toast(t.settings.biometricDisabled);
   }
 
   async function saveGoal() {
@@ -122,22 +126,52 @@ export default function SettingsPage() {
       bodyweightGoal: g > 0 ? toKg(g, units) : undefined,
     });
     setGoalOpen(false);
-    toast(g > 0 ? "Goal updated" : "Goal cleared");
+    toast(g > 0 ? t.settings.goalUpdated : t.settings.goalCleared);
   }
 
   return (
     <>
-      <TopBar title="Settings" back />
+      <TopBar title={t.settings.title} back />
       <div className="page">
         <h1 className="t-hero" style={{ marginBottom: 20 }}>
-          Settings
+          {t.settings.title}
         </h1>
 
+        {/* Language */}
+        <Section title={t.settings.language}>
+          <div className="list-group">
+            {([
+              { code: "en", label: "English", sub: "English" },
+              { code: "de", label: "Deutsch", sub: "German" },
+            ] as { code: Locale; label: string; sub: string }[]).map(({ code, label, sub }) => {
+              const active = settings.language === code || (!settings.language && code === "en");
+              return (
+                <button
+                  key={code}
+                  className="list-row list-row-tap"
+                  style={{ width: "100%", background: "none", border: "none", textAlign: "left" }}
+                  onClick={() => setLanguage(code)}
+                >
+                  <div className="grow">
+                    <div className="t-body" style={{ fontWeight: active ? 600 : 400 }}>{label}</div>
+                    <span className="muted" style={{ fontSize: 13 }}>{sub}</span>
+                  </div>
+                  {active && (
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <path d="M4 10.5l4.5 4.5 7.5-9" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </Section>
+
         {/* Units */}
-        <Section title="Units">
+        <Section title={t.settings.units}>
           <div className="list-group">
             <div className="list-row">
-              <span className="grow t-body">Weight unit</span>
+              <span className="grow t-body">{t.settings.weightUnit}</span>
               <div className="segmented" style={{ width: 150 }}>
                 <button className={units === "metric" ? "on" : ""} onClick={() => setUnits("metric")}>
                   kg
@@ -151,14 +185,18 @@ export default function SettingsPage() {
         </Section>
 
         {/* Appearance */}
-        <Section title="Appearance">
+        <Section title={t.settings.appearance}>
           <div className="list-group">
             <div className="list-row col" style={{ alignItems: "stretch", gap: 10 }}>
-              <span className="t-body">Theme</span>
+              <span className="t-body">{t.settings.theme}</span>
               <div className="segmented">
-                {(["system", "light", "dark"] as Theme[]).map((t) => (
-                  <button key={t} className={settings.theme === t ? "on" : ""} onClick={() => setTheme(t)} style={{ textTransform: "capitalize" }}>
-                    {t}
+                {(["system", "light", "dark"] as Theme[]).map((th) => (
+                  <button
+                    key={th}
+                    className={settings.theme === th ? "on" : ""}
+                    onClick={() => setTheme(th)}
+                  >
+                    {th === "system" ? t.settings.themeSystem : th === "light" ? t.settings.themeLight : t.settings.themeDark}
                   </button>
                 ))}
               </div>
@@ -167,7 +205,7 @@ export default function SettingsPage() {
         </Section>
 
         {/* Goals */}
-        <Section title="Goals">
+        <Section title={t.settings.goals}>
           <div className="list-group">
             <button
               className="list-row list-row-tap"
@@ -177,11 +215,11 @@ export default function SettingsPage() {
                 setGoalOpen(true);
               }}
             >
-              <span className="grow t-body">Bodyweight goal</span>
+              <span className="grow t-body">{t.settings.bodyweightGoal}</span>
               <span className="muted">
                 {settings.bodyweightGoal
                   ? `${fromKg(settings.bodyweightGoal, units)} ${units === "imperial" ? "lb" : "kg"}`
-                  : "Not set"}
+                  : t.common.notSet}
               </span>
               <IconChevron style={{ width: 18, height: 18, color: "var(--ink-muted-30)" }} />
             </button>
@@ -189,45 +227,41 @@ export default function SettingsPage() {
         </Section>
 
         {/* Exercises */}
-        <Section title="Library">
+        <Section title={t.settings.library}>
           <div className="list-group">
             <Link href="/exercises" className="list-row list-row-tap">
-              <span className="grow t-body">Exercise database</span>
+              <span className="grow t-body">{t.settings.exerciseDatabase}</span>
               <IconChevron style={{ width: 18, height: 18, color: "var(--ink-muted-30)" }} />
             </Link>
           </div>
         </Section>
 
         {/* Security */}
-        <Section title="Security">
+        <Section title={t.settings.security}>
           <div className="list-group">
             <div className="list-row">
               <IconFaceId style={{ width: 22, height: 22, color: "var(--primary)" }} />
               <div className="grow">
-                <div className="t-body">Biometric lock</div>
+                <div className="t-body">{t.settings.biometricLock}</div>
                 <span className="muted" style={{ fontSize: 13 }}>
-                  Face ID / Touch ID to open IronLog
+                  {t.settings.biometricLockDesc}
                 </span>
               </div>
               {settings.biometricLockEnabled ? (
                 <button className="btn btn-text btn-danger" onClick={disableBiometric}>
-                  Disable
+                  {t.common.disable}
                 </button>
               ) : (
                 <button className="btn btn-text" onClick={enableBiometric}>
-                  Enable
+                  {t.common.enable}
                 </button>
               )}
             </div>
           </div>
-          <p className="muted" style={{ fontSize: 13, padding: "8px 4px 0" }}>
-            Photos are encrypted at rest with AES-GCM. Lock requires a device
-            with a platform authenticator.
-          </p>
         </Section>
 
         {/* Data */}
-        <Section title="Data">
+        <Section title={t.settings.data}>
           <div className="list-group">
             <button
               className="list-row list-row-tap"
@@ -235,7 +269,7 @@ export default function SettingsPage() {
               onClick={() => setExportOpen(true)}
             >
               <IconDownload style={{ width: 22, height: 22, color: "var(--primary)" }} />
-              <span className="grow t-body">Export encrypted backup</span>
+              <span className="grow t-body">{t.settings.exportBackup}</span>
               <IconChevron style={{ width: 18, height: 18, color: "var(--ink-muted-30)" }} />
             </button>
             <button
@@ -244,90 +278,88 @@ export default function SettingsPage() {
               onClick={pickImportFile}
             >
               <IconUpload style={{ width: 22, height: 22, color: "var(--primary)" }} />
-              <span className="grow t-body">Import backup</span>
+              <span className="grow t-body">{t.settings.importBackup}</span>
               <IconChevron style={{ width: 18, height: 18, color: "var(--ink-muted-30)" }} />
             </button>
           </div>
           <input ref={fileRef} type="file" accept=".ironlog,application/octet-stream" hidden onChange={onFile} />
         </Section>
 
-        {/* Future (architected, disabled) */}
-        <Section title="Coming soon">
+        {/* Coming soon */}
+        <Section title={t.settings.comingSoon}>
           <div className="list-group">
             <div className="list-row" style={{ opacity: 0.5 }}>
               <IconLock style={{ width: 20, height: 20 }} />
-              <span className="grow t-body">iCloud sync</span>
-              <span className="muted" style={{ fontSize: 13 }}>Off</span>
+              <span className="grow t-body">{t.settings.iCloudSync}</span>
+              <span className="muted" style={{ fontSize: 13 }}>{t.common.off}</span>
             </div>
             <div className="list-row" style={{ opacity: 0.5 }}>
               <IconLock style={{ width: 20, height: 20 }} />
-              <span className="grow t-body">Apple Health</span>
-              <span className="muted" style={{ fontSize: 13 }}>Off</span>
+              <span className="grow t-body">{t.settings.appleHealth}</span>
+              <span className="muted" style={{ fontSize: 13 }}>{t.common.off}</span>
             </div>
           </div>
         </Section>
 
         <p className="muted center" style={{ fontSize: 13, marginTop: 24 }}>
-          IronLog · Local-first · All data stays on this device
+          {t.settings.footer}
         </p>
       </div>
 
       {/* Export sheet */}
-      <Sheet open={exportOpen} onClose={() => setExportOpen(false)} title="Export backup">
+      <Sheet open={exportOpen} onClose={() => setExportOpen(false)} title={t.settings.exportTitle}>
         <div className="col gap-md">
           <p className="muted" style={{ fontSize: 14 }}>
-            Choose a passphrase to encrypt your backup. You&apos;ll need it to
-            restore — it can&apos;t be recovered.
+            {t.settings.exportDesc}
           </p>
           <input
             className="input"
             type="password"
-            placeholder="Passphrase (min 6 characters)"
+            placeholder={t.settings.passphrase}
             value={pass}
             onChange={(e) => setPass(e.target.value)}
             autoFocus
           />
           <button className="btn btn-primary btn-block" onClick={doExport} disabled={busy}>
-            {busy ? "Encrypting…" : "Export"}
+            {busy ? t.settings.encrypting : t.settings.export}
           </button>
         </div>
       </Sheet>
 
       {/* Import sheet */}
-      <Sheet open={importOpen} onClose={() => setImportOpen(false)} title="Import backup">
+      <Sheet open={importOpen} onClose={() => setImportOpen(false)} title={t.settings.importTitle}>
         <div className="col gap-md">
           <p className="muted" style={{ fontSize: 14 }}>
-            This replaces all current data with the backup contents. Enter the
-            passphrase used to create it.
+            {t.settings.importDesc}
           </p>
           <input
             className="input"
             type="password"
-            placeholder="Passphrase"
+            placeholder={t.settings.passphrase}
             value={pass}
             onChange={(e) => setPass(e.target.value)}
             autoFocus
           />
           <button className="btn btn-primary btn-block" onClick={doImport} disabled={busy}>
-            {busy ? "Restoring…" : "Restore"}
+            {busy ? t.settings.restoring : t.settings.restore}
           </button>
         </div>
       </Sheet>
 
       {/* Goal sheet */}
-      <Sheet open={goalOpen} onClose={() => setGoalOpen(false)} title="Bodyweight goal">
+      <Sheet open={goalOpen} onClose={() => setGoalOpen(false)} title={t.settings.goalTitle}>
         <div className="col gap-md">
           <input
             className="input"
             type="number"
             inputMode="decimal"
-            placeholder={`Target (${units === "imperial" ? "lb" : "kg"})`}
+            placeholder={t.settings.goalTarget(units === "imperial" ? "lb" : "kg")}
             value={goal}
             onChange={(e) => setGoal(e.target.value)}
             autoFocus
           />
           <button className="btn btn-primary btn-block" onClick={saveGoal}>
-            Save
+            {t.common.save}
           </button>
         </div>
       </Sheet>

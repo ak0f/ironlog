@@ -1,14 +1,8 @@
 "use client";
 
-/**
- * Daily check-in — an iPhone-style sheet that slides up from the bottom on the
- * first app open of each new day. Greets the user, shows the streak, and
- * offers one-tap entries (log weight / start workout). Dismissal is recorded
- * in localStorage so it appears at most once per calendar day.
- */
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useApp, useUnits } from "./AppProvider";
+import { useApp, useI18n, useLocale, useUnits } from "./AppProvider";
 import { ActivityRing } from "./ActivityRing";
 import { IconClose, IconDumbbell, IconScale } from "./Icons";
 import {
@@ -25,6 +19,8 @@ export function DailyCheckIn() {
   const router = useRouter();
   const units = useUnits();
   const { ready, settings, toast } = useApp();
+  const t = useI18n();
+  const locale = useLocale();
   const [show, setShow] = useState(false);
   const [closing, setClosing] = useState(false);
   const [streak, setStreak] = useState(0);
@@ -32,13 +28,14 @@ export function DailyCheckIn() {
   const [loggedToday, setLoggedToday] = useState(true);
   const [lastWeight, setLastWeight] = useState<number | null>(null);
   const [weight, setWeight] = useState("");
+  const [dateStr, setDateStr] = useState("");
 
   useEffect(() => {
     if (!ready || !settings) return;
     const today = new Date();
     const stamp = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
     const last = typeof localStorage !== "undefined" ? localStorage.getItem(KEY) : stamp;
-    if (last === stamp) return; // already greeted today
+    if (last === stamp) return;
 
     (async () => {
       const [s, freq, latest] = await Promise.all([
@@ -50,9 +47,16 @@ export function DailyCheckIn() {
       setWeekCount(freq.reduce((a, b) => a + b, 0));
       setLoggedToday(!!latest && isSameDay(latest.date, Date.now()));
       setLastWeight(latest?.weight ?? null);
+      setDateStr(
+        new Date().toLocaleDateString(locale === "de" ? "de-DE" : "en-US", {
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+        })
+      );
       setShow(true);
     })();
-  }, [ready, settings]);
+  }, [ready, settings, locale]);
 
   function dismiss() {
     const today = new Date();
@@ -70,7 +74,7 @@ export function DailyCheckIn() {
     const w = parseFloat(weight);
     if (!w || w <= 0) return;
     await bodyweightRepo.upsertForDay({ weight: toKg(w, units), date: Date.now() });
-    toast("Weight logged");
+    toast(t.body.weightLogged);
     setLoggedToday(true);
     setWeight("");
   }
@@ -79,9 +83,9 @@ export function DailyCheckIn() {
 
   const greeting = (() => {
     const h = new Date().getHours();
-    if (h < 12) return "Good morning";
-    if (h < 18) return "Good afternoon";
-    return "Good evening";
+    if (h < 12) return t.greeting.morning;
+    if (h < 18) return t.greeting.afternoon;
+    return t.greeting.evening;
   })();
 
   return (
@@ -107,7 +111,7 @@ export function DailyCheckIn() {
               {weekCount}
             </span>
             <span className="muted" style={{ fontSize: 11, fontWeight: 600 }}>
-              of {WEEKLY_GOAL}
+              {t.dashboard.ofGoal(WEEKLY_GOAL)}
             </span>
           </ActivityRing>
         </div>
@@ -117,27 +121,18 @@ export function DailyCheckIn() {
           {settings?.displayName ? `, ${settings.displayName}` : ""}
         </h1>
         <p className="muted center" style={{ marginTop: 4 }}>
-          {new Date().toLocaleDateString(undefined, {
-            weekday: "long",
-            month: "long",
-            day: "numeric",
-          })}
+          {dateStr}
         </p>
 
         <div className="checkin-streak">
-          {streak > 0 ? (
-            <>🔥 {streak}-day streak — keep it alive</>
-          ) : (
-            <>A fresh start. Make today count.</>
-          )}
+          {streak > 0 ? t.checkin.streakAlive(streak) : t.checkin.freshStart}
         </div>
 
-        {/* Quick bodyweight log */}
         {!loggedToday && (
           <div className="checkin-quick">
             <div className="row gap-sm" style={{ marginBottom: 4 }}>
               <IconScale style={{ width: 20, height: 20, color: "var(--primary)" }} />
-              <span className="t-headline grow">Log today&apos;s weight</span>
+              <span className="t-headline grow">{t.checkin.logWeight}</span>
             </div>
             <div className="row gap-sm" style={{ marginTop: 10 }}>
               <input
@@ -156,7 +151,7 @@ export function DailyCheckIn() {
                 disabled={!weight}
                 style={{ flexShrink: 0 }}
               >
-                Save
+                {t.common.save}
               </button>
             </div>
           </div>
@@ -171,14 +166,14 @@ export function DailyCheckIn() {
           }}
         >
           <IconDumbbell style={{ width: 22, height: 22 }} />
-          Start today&apos;s workout
+          {t.checkin.startWorkout}
         </button>
         <button
           className="btn btn-text btn-block"
           style={{ marginTop: 6 }}
           onClick={dismiss}
         >
-          Not now
+          {t.checkin.notNow}
         </button>
       </div>
     </div>

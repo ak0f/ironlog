@@ -12,7 +12,8 @@ import {
   IconTimeline,
   IconTrophy,
 } from "@/components/Icons";
-import { useUnits } from "@/components/AppProvider";
+import { useI18n, useLocale, useUnits } from "@/components/AppProvider";
+import type { Locale } from "@/types";
 import { buildTimeline, photoRepo } from "@/lib/repo";
 import { formatWeight, relativeDay } from "@/lib/utils";
 import type {
@@ -24,21 +25,23 @@ import type {
   Workout,
 } from "@/types";
 
-const FILTERS: { key: TimelineEventType | "all"; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "workout", label: "Workouts" },
-  { key: "pr", label: "PRs" },
-  { key: "bodyweight", label: "Weight" },
-  { key: "photo", label: "Photos" },
-];
-
 const PAGE = 20;
 
 export default function TimelinePage() {
   const units = useUnits();
+  const t = useI18n();
+  const locale = useLocale();
   const events = useLiveQuery(() => buildTimeline(), [], []);
   const [filter, setFilter] = useState<TimelineEventType | "all">("all");
   const [limit, setLimit] = useState(PAGE);
+
+  const FILTERS: { key: TimelineEventType | "all"; label: string }[] = [
+    { key: "all", label: t.timeline.all },
+    { key: "workout", label: t.timeline.workouts },
+    { key: "pr", label: t.timeline.prs },
+    { key: "bodyweight", label: t.timeline.weight },
+    { key: "photo", label: t.timeline.photos },
+  ];
 
   const filtered = useMemo(
     () => (events ?? []).filter((e) => filter === "all" || e.type === filter),
@@ -62,10 +65,10 @@ export default function TimelinePage() {
 
   return (
     <>
-      <TopBar title="Timeline" />
+      <TopBar title={t.timeline.title} />
       <div className="page">
         <h1 className="t-hero enter" style={{ marginBottom: 14 }}>
-          Timeline
+          {t.timeline.title}
         </h1>
         <div className="chip-row" style={{ marginBottom: 20 }}>
           {FILTERS.map((f) => (
@@ -82,12 +85,12 @@ export default function TimelinePage() {
         {visible.length === 0 ? (
           <div className="empty">
             <IconTimeline className="empty-icon" />
-            <p>Nothing here yet. Your activity will appear in this feed.</p>
+            <p>{t.timeline.empty}</p>
           </div>
         ) : (
           <div className="col stagger" style={{ gap: 10 }}>
             {visible.map((ev) => (
-              <TimelineRow key={ev.id} event={ev} units={units} />
+              <TimelineRow key={ev.id} event={ev} units={units} locale={locale} t={t} />
             ))}
           </div>
         )}
@@ -99,9 +102,13 @@ export default function TimelinePage() {
 function TimelineRow({
   event,
   units,
+  locale,
+  t,
 }: {
   event: TimelineEvent;
   units: "metric" | "imperial";
+  locale: Locale;
+  t: ReturnType<typeof useI18n>;
 }) {
   if (event.type === "workout") {
     const w = event.ref as Workout;
@@ -117,8 +124,8 @@ function TimelineRow({
               {w.title}
             </div>
             <span className="muted" style={{ fontSize: 13 }}>
-              {w.exercises.length} exercises ·{" "}
-              {w.exercises.reduce((n, e) => n + e.sets.length, 0)} sets
+              {t.workout.exercises(w.exercises.length)} ·{" "}
+              {t.workout.sets(w.exercises.reduce((n, e) => n + e.sets.length, 0))}
             </span>
           </div>
           <div className="row" style={{ gap: 3 }}>
@@ -126,7 +133,7 @@ function TimelineRow({
               <MuscleBadge key={g} group={g} size={26} />
             ))}
           </div>
-          <Day ts={event.date} />
+          <Day ts={event.date} locale={locale} />
         </div>
       </Link>
     );
@@ -145,7 +152,7 @@ function TimelineRow({
               {pr.exerciseName}
             </div>
             <span className="muted" style={{ fontSize: 13 }}>
-              {prLabel(pr, units)}
+              {prLabel(pr, units, t)}
             </span>
           </div>
           <span
@@ -154,7 +161,7 @@ function TimelineRow({
           >
             {pr.type}
           </span>
-          <Day ts={event.date} />
+          <Day ts={event.date} locale={locale} />
         </div>
       </div>
     );
@@ -173,20 +180,20 @@ function TimelineRow({
               {formatWeight(b.weight, units)}
             </div>
             <span className="muted" style={{ fontSize: 13 }}>
-              Bodyweight{b.calories ? ` · ${b.calories} kcal` : ""}
+              {t.timeline.bodyweight}{b.calories ? ` · ${b.calories} ${t.timeline.kcal}` : ""}
             </span>
           </div>
-          <Day ts={event.date} />
+          <Day ts={event.date} locale={locale} />
         </div>
       </div>
     );
   }
 
   const ph = event.ref as Photo;
-  return <PhotoRow photo={ph} ts={event.date} />;
+  return <PhotoRow photo={ph} ts={event.date} locale={locale} t={t} />;
 }
 
-function PhotoRow({ photo, ts }: { photo: Photo; ts: number }) {
+function PhotoRow({ photo, ts, locale, t }: { photo: Photo; ts: number; locale: Locale; t: ReturnType<typeof useI18n> }) {
   const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
     let u: string | null = null;
@@ -229,13 +236,13 @@ function PhotoRow({ photo, ts }: { photo: Photo; ts: number }) {
         </div>
         <div className="grow" style={{ minWidth: 0 }}>
           <div className="t-headline" style={{ fontSize: 15, textTransform: "capitalize", marginBottom: 1 }}>
-            {photo.category} photo
+            {photo.category} {t.timeline.photos.toLowerCase().replace(/s$/, "")}
           </div>
           <span className="muted" style={{ fontSize: 13 }}>
-            Progress photo
+            {t.timeline.progressPhoto}
           </span>
         </div>
-        <Day ts={ts} />
+        <Day ts={ts} locale={locale} />
       </div>
     </Link>
   );
@@ -267,7 +274,7 @@ function Bullet({
   );
 }
 
-function Day({ ts }: { ts: number }) {
+function Day({ ts, locale }: { ts: number; locale: Locale }) {
   return (
     <span
       style={{
@@ -278,13 +285,13 @@ function Day({ ts }: { ts: number }) {
         flexShrink: 0,
       }}
     >
-      {relativeDay(ts)}
+      {relativeDay(ts, locale)}
     </span>
   );
 }
 
-function prLabel(pr: PRRecord, units: "metric" | "imperial"): string {
-  if (pr.type === "weight") return `Top weight · ${formatWeight(pr.weight, units)}`;
-  if (pr.type === "reps") return `Rep PR · ${pr.reps} reps`;
-  return `Volume PR · ${formatWeight(pr.weight, units)} × ${pr.reps}`;
+function prLabel(pr: PRRecord, units: "metric" | "imperial", t: ReturnType<typeof useI18n>): string {
+  if (pr.type === "weight") return `${t.pr.topWeight} · ${formatWeight(pr.weight, units)}`;
+  if (pr.type === "reps") return `${t.pr.repPR} · ${pr.reps} ${t.common.reps.toLowerCase()}`;
+  return `${t.pr.volume} · ${formatWeight(pr.weight, units)} × ${pr.reps}`;
 }

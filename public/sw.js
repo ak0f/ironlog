@@ -16,7 +16,6 @@ self.addEventListener("install", (event) => {
     caches
       .open(SHELL)
       .then((cache) => cache.addAll(PRECACHE).catch(() => undefined))
-      .then(() => self.skipWaiting())
   );
 });
 
@@ -31,7 +30,6 @@ self.addEventListener("activate", (event) => {
             .map((k) => caches.delete(k))
         )
       )
-      .then(() => self.clients.claim())
   );
 });
 

@@ -6,7 +6,7 @@ import { TopBar } from "@/components/TopBar";
 import { Sheet } from "@/components/Sheet";
 import { MuscleBadge } from "@/components/MuscleIllustration";
 import { IconPlus, IconSearch, IconTrash } from "@/components/Icons";
-import { useApp } from "@/components/AppProvider";
+import { useApp, useI18n } from "@/components/AppProvider";
 import { exerciseRepo, prRepo } from "@/lib/repo";
 import {
   MUSCLE_GROUPS,
@@ -17,6 +17,7 @@ import {
 
 export default function ExercisesPage() {
   const { toast } = useApp();
+  const t = useI18n();
   const all = useLiveQuery(() => exerciseRepo.all(), [], []);
   const [group, setGroup] = useState<MuscleGroup | "all">("all");
   const [query, setQuery] = useState("");
@@ -34,19 +35,16 @@ export default function ExercisesPage() {
 
   async function remove(ex: Exercise) {
     const prs = await prRepo.forExercise(ex.id);
-    const warn = prs.length
-      ? `Delete "${ex.name}"? Its ${prs.length} PR record(s) stay in history.`
-      : `Delete "${ex.name}"?`;
-    if (!confirm(warn)) return;
+    if (!confirm(t.exercises.deleteConfirm(ex.name, prs.length))) return;
     await exerciseRepo.remove(ex.id);
     setEditing(null);
-    toast("Exercise deleted");
+    toast(t.exercises.exerciseDeleted);
   }
 
   return (
     <>
       <TopBar
-        title="Exercises"
+        title={t.exercises.title}
         back
         right={
           <button className="btn btn-text" onClick={() => setCreating(true)} aria-label="New exercise">
@@ -56,7 +54,7 @@ export default function ExercisesPage() {
       />
       <div className="page">
         <h1 className="t-hero" style={{ marginBottom: 14 }}>
-          Exercises
+          {t.exercises.title}
         </h1>
 
         <div className="input" style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", marginBottom: 12 }}>
@@ -64,14 +62,14 @@ export default function ExercisesPage() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search"
+            placeholder={t.common.search}
             style={{ border: "none", background: "transparent", outline: "none", flex: 1, fontSize: 17, color: "var(--ink)" }}
           />
         </div>
 
         <div className="chip-row" style={{ marginBottom: 16 }}>
           <button className={`chip${group === "all" ? " chip-active" : ""}`} onClick={() => setGroup("all")}>
-            All
+            {t.timeline.all}
           </button>
           {MUSCLE_GROUPS.map((g) => (
             <button key={g} className={`chip${group === g ? " chip-active" : ""}`} onClick={() => setGroup(g)}>
@@ -81,7 +79,7 @@ export default function ExercisesPage() {
         </div>
 
         <p className="muted" style={{ fontSize: 13, marginBottom: 8 }}>
-          {filtered.length} exercises
+          {t.exercises.count(filtered.length)}
         </p>
         <div className="list-group">
           {filtered.map((ex) => (
@@ -97,7 +95,7 @@ export default function ExercisesPage() {
                 <span className="muted" style={{ fontSize: 13 }}>
                   {MUSCLE_GROUP_LABELS[ex.muscleGroup]}
                   {ex.equipment ? ` · ${ex.equipment}` : ""}
-                  {ex.custom ? " · Custom" : ""}
+                  {ex.custom ? ` · ${t.common.custom}` : ""}
                 </span>
               </div>
             </button>
@@ -110,8 +108,9 @@ export default function ExercisesPage() {
         onClose={() => setCreating(false)}
         onSaved={() => {
           setCreating(false);
-          toast("Exercise created");
+          toast(t.exercises.exerciseCreated);
         }}
+        t={t}
       />
       <ExerciseEditor
         open={!!editing}
@@ -119,9 +118,10 @@ export default function ExercisesPage() {
         onClose={() => setEditing(null)}
         onSaved={() => {
           setEditing(null);
-          toast("Saved");
+          toast(t.exercises.saved);
         }}
         onDelete={editing?.custom ? () => remove(editing) : undefined}
+        t={t}
       />
     </>
   );
@@ -133,18 +133,19 @@ function ExerciseEditor({
   onClose,
   onSaved,
   onDelete,
+  t,
 }: {
   open: boolean;
   exercise?: Exercise;
   onClose: () => void;
   onSaved: () => void;
   onDelete?: () => void;
+  t: ReturnType<typeof useI18n>;
 }) {
   const [name, setName] = useState(exercise?.name ?? "");
   const [group, setGroup] = useState<MuscleGroup>(exercise?.muscleGroup ?? "chest");
   const [equip, setEquip] = useState(exercise?.equipment ?? "");
 
-  // Reset fields when the target exercise changes.
   const key = exercise?.id ?? "new";
   const [lastKey, setLastKey] = useState(key);
   if (key !== lastKey) {
@@ -177,22 +178,22 @@ function ExerciseEditor({
   }
 
   return (
-    <Sheet open={open} onClose={onClose} title={exercise ? "Edit exercise" : "New exercise"}>
+    <Sheet open={open} onClose={onClose} title={exercise ? t.exercises.editTitle : t.exercises.newTitle}>
       <div className="col gap-md">
         {isCore && (
           <p className="muted" style={{ fontSize: 13 }}>
-            This is a core exercise. Edits are saved locally.
+            {t.exercises.coreNote}
           </p>
         )}
         <div>
           <label className="t-caption-strong" style={{ display: "block", marginBottom: 6 }}>
-            Name
+            {t.exercises.nameLabel}
           </label>
-          <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Exercise name" />
+          <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder={t.exercises.namePlaceholder} />
         </div>
         <div>
           <label className="t-caption-strong" style={{ display: "block", marginBottom: 6 }}>
-            Muscle group
+            {t.exercises.muscleGroupLabel}
           </label>
           <div className="chip-row">
             {MUSCLE_GROUPS.map((g) => (
@@ -204,16 +205,16 @@ function ExerciseEditor({
         </div>
         <div>
           <label className="t-caption-strong" style={{ display: "block", marginBottom: 6 }}>
-            Equipment
+            {t.exercises.equipmentLabel}
           </label>
-          <input className="input" value={equip} onChange={(e) => setEquip(e.target.value)} placeholder="Barbell, Dumbbell…" />
+          <input className="input" value={equip} onChange={(e) => setEquip(e.target.value)} placeholder={t.exercises.equipmentPlaceholder} />
         </div>
         <button className="btn btn-primary btn-block" onClick={save} disabled={!name.trim()}>
-          Save
+          {t.common.save}
         </button>
         {onDelete && (
           <button className="btn btn-ghost btn-danger btn-block" onClick={onDelete}>
-            <IconTrash style={{ width: 20, height: 20 }} /> Delete exercise
+            <IconTrash style={{ width: 20, height: 20 }} /> {t.exercises.deleteExercise}
           </button>
         )}
       </div>

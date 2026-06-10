@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { IconChevron } from "./Icons";
+import { useI18n } from "./AppProvider";
 
 interface Props {
   title: string;
@@ -14,6 +15,7 @@ interface Props {
 /** Sticky frosted top bar. `large` renders the iOS large-title style below. */
 export function TopBar({ title, back, large, right }: Props) {
   const router = useRouter();
+  const t = useI18n();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -38,7 +40,7 @@ export function TopBar({ title, back, large, right }: Props) {
                 <IconChevron
                   style={{ transform: "rotate(180deg)", width: 22, height: 22 }}
                 />
-                <span style={{ fontSize: 17 }}>Back</span>
+                <span style={{ fontSize: 17 }}>{t.common.back}</span>
               </button>
             )}
             {!large && <span className="topbar-title">{title}</span>}

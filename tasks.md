@@ -133,4 +133,6 @@
 Legend: `[x]` done · `[~]` architected/disabled per spec · `[ ]` not started
 
 
-use the newest version of everything, add more functions, better design like animations and apple hhealth glasmorphism and effects, new day opening register like iphone from down slide etc. add user-flows.md, export import system make it better, SchemaError: KeyPath workoutId on object store prs is not indexed
+An Aura GYM verkaufen: website full umbranden zu aura gym tracker und nacher das vorschlagen gehen, neue funktionen zulassen wie standort festlegen etc. für bestimmte standorte bestimme geräte haben und welche nicht.
+
+zu aura gym hingehen manager holen fragen ob er app kurz anschauen könnte und nacher sagen dass ichs gratis mache weil ich bei aura gym traniere oder für 3-12 monate gratis abo.

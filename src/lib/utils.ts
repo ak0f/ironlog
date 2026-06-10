@@ -26,15 +26,15 @@ export function isSameDay(a: number, b: number): boolean {
   return startOfDay(a) === startOfDay(b);
 }
 
-const RELATIVE = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
-
 /** "Today", "Yesterday", "3 days ago", or a date for older. */
-export function relativeDay(ts: number): string {
+export function relativeDay(ts: number, locale: "en" | "de" = "en"): string {
   const diff = daysBetween(ts, Date.now());
-  if (diff === 0) return "Today";
-  if (diff === -1) return "Yesterday";
-  if (diff > -7 && diff < 0) return RELATIVE.format(diff, "day");
-  return new Date(ts).toLocaleDateString(undefined, {
+  if (diff === 0) return locale === "de" ? "Heute" : "Today";
+  if (diff === -1) return locale === "de" ? "Gestern" : "Yesterday";
+  if (diff > -7 && diff < 0) {
+    return new Intl.RelativeTimeFormat(locale, { numeric: "auto" }).format(diff, "day");
+  }
+  return new Date(ts).toLocaleDateString(locale === "de" ? "de-DE" : "en-US", {
     month: "short",
     day: "numeric",
     year:

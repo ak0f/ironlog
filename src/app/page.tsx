@@ -14,7 +14,7 @@ import {
   IconGear,
   IconTrophy,
 } from "@/components/Icons";
-import { useApp, useUnits } from "@/components/AppProvider";
+import { useApp, useI18n, useLocale, useUnits } from "@/components/AppProvider";
 import {
   bodyweightRepo,
   computeStreak,
@@ -31,6 +31,8 @@ const WEEKLY_GOAL = 4;
 export default function DashboardPage() {
   const units = useUnits();
   const { settings } = useApp();
+  const t = useI18n();
+  const locale = useLocale();
 
   const recentWorkouts = useLiveQuery(() => workoutRepo.recent(1), [], []);
   const weights = useLiveQuery(() => bodyweightRepo.all(), [], []);
@@ -91,9 +93,9 @@ export default function DashboardPage() {
 
   const greeting = (() => {
     const h = new Date().getHours();
-    if (h < 12) return "Good morning";
-    if (h < 18) return "Good afternoon";
-    return "Good evening";
+    if (h < 12) return t.greeting.morning;
+    if (h < 18) return t.greeting.afternoon;
+    return t.greeting.evening;
   })();
 
   return (
@@ -133,7 +135,7 @@ export default function DashboardPage() {
                 >
                   <AnimatedNumber value={weekCount} />
                 </span>
-                <span className="ring-goal-label">of {WEEKLY_GOAL}</span>
+                <span className="ring-goal-label">{t.dashboard.ofGoal(WEEKLY_GOAL)}</span>
               </ActivityRing>
 
               <div className="grow col" style={{ gap: 0 }}>
@@ -141,7 +143,7 @@ export default function DashboardPage() {
                   className="t-caption-strong"
                   style={{ marginBottom: 10 }}
                 >
-                  This week
+                  {t.dashboard.thisWeek}
                 </span>
 
                 {/* Streak badge */}
@@ -152,7 +154,7 @@ export default function DashboardPage() {
                   <span className="streak-badge-val">
                     <AnimatedNumber value={streak} />
                   </span>
-                  <span className="streak-badge-label">day streak</span>
+                  <span className="streak-badge-label">{t.dashboard.dayStreak}</span>
                 </div>
 
                 {/* Frequency bars */}
@@ -192,22 +194,20 @@ export default function DashboardPage() {
                 <span className="stat-chip-val">
                   <AnimatedNumber value={workoutCount ?? 0} />
                 </span>
-                <span className="stat-chip-label">sessions</span>
+                <span className="stat-chip-label">{t.dashboard.sessions}</span>
               </div>
               <div className="stat-chip">
                 <span className="stat-chip-val">
-                  <AnimatedNumber
-                    value={weekCount}
-                  />
+                  <AnimatedNumber value={weekCount} />
                 </span>
-                <span className="stat-chip-label">this week</span>
+                <span className="stat-chip-label">{t.dashboard.thisWeekLabel}</span>
               </div>
               {streak > 0 && (
                 <div className="stat-chip">
                   <span className="stat-chip-val" style={{ color: "var(--fire)" }}>
                     <AnimatedNumber value={streak} />
                   </span>
-                  <span className="stat-chip-label">day streak</span>
+                  <span className="stat-chip-label">{t.dashboard.dayStreak}</span>
                 </div>
               )}
             </div>
@@ -220,7 +220,7 @@ export default function DashboardPage() {
             style={{ display: "block" }}
           >
             <div className="row-between" style={{ marginBottom: 8 }}>
-              <span className="t-caption-strong">Bodyweight</span>
+              <span className="t-caption-strong">{t.dashboard.bodyweight}</span>
               {latestWeight && (
                 <span
                   className="t-headline tnum"
@@ -238,7 +238,7 @@ export default function DashboardPage() {
             />
             {!trendPoints.length && (
               <p className="muted" style={{ fontSize: 14, padding: "12px 0 4px" }}>
-                Log your bodyweight to see your trend.
+                {t.dashboard.noDataYet}
               </p>
             )}
           </Link>
@@ -250,7 +250,7 @@ export default function DashboardPage() {
             style={{ display: "block" }}
           >
             <div className="row-between" style={{ marginBottom: lastWorkout ? 12 : 0 }}>
-              <span className="t-caption-strong">Last workout</span>
+              <span className="t-caption-strong">{t.dashboard.lastWorkout}</span>
               <IconChevron
                 style={{ width: 17, height: 17, color: "var(--ink-muted-30)" }}
               />
@@ -274,15 +274,15 @@ export default function DashboardPage() {
                     {lastWorkout.title}
                   </div>
                   <p className="muted" style={{ fontSize: 13, margin: 0 }}>
-                    {relativeDay(lastWorkout.date)} ·{" "}
-                    {lastWorkout.exercises.length} exercises ·{" "}
-                    {lastWorkout.exercises.reduce((n, e) => n + e.sets.length, 0)} sets
+                    {relativeDay(lastWorkout.date, locale)} ·{" "}
+                    {t.workout.exercises(lastWorkout.exercises.length)} ·{" "}
+                    {t.workout.sets(lastWorkout.exercises.reduce((n, e) => n + e.sets.length, 0))}
                   </p>
                 </div>
               </div>
             ) : (
               <p className="muted" style={{ fontSize: 14, marginTop: 8 }}>
-                No workouts yet — start your first session.
+                {t.dashboard.noWorkoutsYet}
               </p>
             )}
           </Link>
@@ -291,7 +291,7 @@ export default function DashboardPage() {
           {recentPRs && recentPRs.length > 0 && (
             <div className="card span-2">
               <div className="row-between" style={{ marginBottom: 16 }}>
-                <span className="t-caption-strong">Recent PRs</span>
+                <span className="t-caption-strong">{t.dashboard.recentPRs}</span>
                 <IconTrophy
                   style={{ width: 18, height: 18, color: "var(--pr-gold)" }}
                 />
@@ -318,10 +318,10 @@ export default function DashboardPage() {
                         </div>
                         <span className="muted" style={{ fontSize: 13 }}>
                           {pr.type === "weight"
-                            ? `Top weight · ${formatWeight(pr.weight, units)}`
+                            ? `${t.pr.topWeight} · ${formatWeight(pr.weight, units)}`
                             : pr.type === "reps"
-                              ? `Rep PR · ${pr.reps} reps`
-                              : `Volume · ${formatWeight(pr.weight, units)} × ${pr.reps}`}
+                              ? `${t.pr.repPR} · ${pr.reps} ${t.common.reps.toLowerCase()}`
+                              : `${t.pr.volume} · ${formatWeight(pr.weight, units)} × ${pr.reps}`}
                         </span>
                       </div>
                       <span
@@ -348,7 +348,7 @@ export default function DashboardPage() {
                 className="t-caption-strong"
                 style={{ display: "block", marginBottom: 10 }}
               >
-                Latest photo
+                {t.dashboard.latestPhoto}
               </span>
               <div className="img-surface" style={{ aspectRatio: "16 / 9" }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -2,9 +2,10 @@
 
 import { useEffect } from "react";
 
-/** Registers the offline service worker once, after load. */
+/** Registers the offline service worker once, after load. Production only. */
 export function ServiceWorker() {
   useEffect(() => {
+    if (process.env.NODE_ENV !== "production") return;
     if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) {
       return;
     }

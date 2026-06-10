@@ -6,7 +6,7 @@ import { TopBar } from "@/components/TopBar";
 import { LineChart, type Point } from "@/components/LineChart";
 import { Sheet } from "@/components/Sheet";
 import { IconPlus, IconScale, IconTrash } from "@/components/Icons";
-import { useApp, useUnits } from "@/components/AppProvider";
+import { useApp, useI18n, useLocale, useUnits } from "@/components/AppProvider";
 import { bodyweightRepo } from "@/lib/repo";
 import {
   formatWeight,
@@ -22,6 +22,8 @@ type Range = 30 | 90 | 365 | 0;
 export default function BodyPage() {
   const units = useUnits();
   const { settings, toast } = useApp();
+  const t = useI18n();
+  const locale = useLocale();
   const entries = useLiveQuery(() => bodyweightRepo.all(), [], []);
   const [open, setOpen] = useState(false);
   const [range, setRange] = useState<Range>(90);
@@ -44,7 +46,7 @@ export default function BodyPage() {
   async function save() {
     const w = parseFloat(weight);
     if (!w || w <= 0) {
-      toast("Enter a valid weight");
+      toast(t.body.enterValidWeight);
       return;
     }
     await bodyweightRepo.upsertForDay({
@@ -55,11 +57,11 @@ export default function BodyPage() {
     setWeight("");
     setCalories("");
     setOpen(false);
-    toast("Weight logged");
+    toast(t.body.weightLogged);
   }
 
   async function remove(id: string) {
-    if (confirm("Delete this entry?")) await bodyweightRepo.remove(id);
+    if (confirm(t.body.deleteConfirm)) await bodyweightRepo.remove(id);
   }
 
   const reversed = [...(entries ?? [])].reverse();
@@ -67,7 +69,7 @@ export default function BodyPage() {
   return (
     <>
       <TopBar
-        title="Body"
+        title={t.body.title}
         right={
           <button className="btn btn-text" onClick={() => setOpen(true)} aria-label="Add weight">
             <IconPlus style={{ width: 24, height: 24 }} />
@@ -76,20 +78,20 @@ export default function BodyPage() {
       />
       <div className="page">
         <h1 className="t-hero" style={{ marginBottom: 16 }}>
-          Body
+          {t.body.title}
         </h1>
 
         <div className="card-parchment" style={{ marginBottom: 16 }}>
           <div className="row-between" style={{ marginBottom: 4 }}>
             <div>
-              <span className="t-caption-strong">Current</span>
+              <span className="t-caption-strong">{t.body.current}</span>
               <div className="stat-value" style={{ marginTop: 4 }}>
                 {latest ? formatWeight(latest.weight, units) : "—"}
               </div>
             </div>
             {change !== 0 && (
               <div className="center">
-                <span className="t-caption-strong">Change</span>
+                <span className="t-caption-strong">{t.body.change}</span>
                 <div
                   className="t-title"
                   style={{
@@ -124,12 +126,12 @@ export default function BodyPage() {
         </div>
 
         <h2 className="t-caption-strong" style={{ marginBottom: 10 }}>
-          History
+          {t.body.history}
         </h2>
         {reversed.length === 0 ? (
           <div className="empty">
             <IconScale className="empty-icon" />
-            <p>Log your bodyweight to start tracking your trend.</p>
+            <p>{t.body.empty}</p>
           </div>
         ) : (
           <div className="list-group">
@@ -138,7 +140,7 @@ export default function BodyPage() {
                 <div className="grow">
                   <div className="t-headline">{formatWeight(e.weight, units)}</div>
                   <span className="muted" style={{ fontSize: 13 }}>
-                    {relativeDay(e.date)}
+                    {relativeDay(e.date, locale)}
                     {e.calories ? ` · ${e.calories} kcal` : ""}
                   </span>
                 </div>
@@ -155,11 +157,11 @@ export default function BodyPage() {
         )}
       </div>
 
-      <Sheet open={open} onClose={() => setOpen(false)} title="Log bodyweight">
+      <Sheet open={open} onClose={() => setOpen(false)} title={t.body.logBodyweight}>
         <div className="col gap-md">
           <div>
             <label className="t-caption-strong" style={{ display: "block", marginBottom: 6 }}>
-              Weight ({unitLabel(units)})
+              {t.body.weight(unitLabel(units))}
             </label>
             <input
               className="input"
@@ -173,7 +175,7 @@ export default function BodyPage() {
           </div>
           <div>
             <label className="t-caption-strong" style={{ display: "block", marginBottom: 6 }}>
-              Calories (optional)
+              {t.body.caloriesOptional}
             </label>
             <input
               className="input"
@@ -185,10 +187,10 @@ export default function BodyPage() {
             />
           </div>
           <button className="btn btn-primary btn-block" onClick={save}>
-            Save
+            {t.common.save}
           </button>
           <p className="muted center" style={{ fontSize: 13 }}>
-            One entry per day — saving again updates today&apos;s value.
+            {t.body.oneEntryPerDay}
           </p>
         </div>
       </Sheet>

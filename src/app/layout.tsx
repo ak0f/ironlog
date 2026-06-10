@@ -39,7 +39,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" data-theme="dark">
-      <body>
+      <body suppressHydrationWarning>
         <AppProvider>
           <LockGate>
             <main className="app-scroll">{children}</main>
