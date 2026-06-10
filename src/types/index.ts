@@ -156,6 +156,7 @@ export interface Photo {
 
 export type Theme = "system" | "light" | "dark";
 export type Units = "metric" | "imperial";
+export type TrainingGoal = "bulk" | "maintain" | "cut";
 
 /** Single-row user settings document. */
 export interface Settings {
@@ -168,6 +169,11 @@ export interface Settings {
   biometricLockEnabled: boolean;
   /** Goal bodyweight in kg, optional. */
   bodyweightGoal?: number;
+  /** Profile (collected during onboarding). */
+  displayName?: string;
+  trainingGoal?: TrainingGoal;
+  /** True once first-launch onboarding has completed. */
+  onboarded?: boolean;
   /** Schema version for export/import migration. */
   schemaVersion: number;
   createdAt: number;

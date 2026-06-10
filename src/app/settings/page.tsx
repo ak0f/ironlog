@@ -80,7 +80,10 @@ export default function SettingsPage() {
     setBusy(true);
     try {
       const res = await importBackup(importBytes.current, pass, "replace");
-      toast(`Restored ${res.workouts} workouts, ${res.photos} photos`);
+      const migrated = res.migratedFrom
+        ? ` (migrated from v${res.migratedFrom})`
+        : "";
+      toast(`Restored ${res.workouts} workouts, ${res.photos} photos${migrated}`);
       setImportOpen(false);
       setPass("");
       importBytes.current = null;

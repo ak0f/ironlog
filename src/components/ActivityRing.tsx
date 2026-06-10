@@ -1,14 +1,8 @@
 "use client";
 
-/**
- * Apple Activity–style progress ring. Single concentric ring with a rounded
- * cap, animated sweep on mount, and a glowing tip when complete. Used on the
- * dashboard for the weekly training goal — the app's signature visual.
- */
 import { useEffect, useState } from "react";
 
 interface Props {
-  /** 0..1 (values > 1 overshoot the ring, capped visually at full). */
   progress: number;
   size?: number;
   stroke?: number;
@@ -26,11 +20,10 @@ export function ActivityRing({
   children,
 }: Props) {
   const [animated, setAnimated] = useState(0);
-  const clamped = Math.max(0, Math.min(1, progress));
+  const clamped = Math.max(0, Math.min(1.5, progress));
 
-  // Animate from 0 to target on mount / change.
   useEffect(() => {
-    const id = requestAnimationFrame(() => setAnimated(clamped));
+    const id = requestAnimationFrame(() => setAnimated(Math.min(1, clamped)));
     return () => cancelAnimationFrame(id);
   }, [clamped]);
 
@@ -39,9 +32,15 @@ export function ActivityRing({
   const dash = c * animated;
   const complete = clamped >= 1;
 
+  /* cap-dot position at the leading edge of the arc */
+  const angle = animated * 2 * Math.PI - Math.PI / 2;
+  const cx = size / 2 + r * Math.cos(angle);
+  const cy = size / 2 + r * Math.sin(angle);
+
   return (
     <div className="ring-wrap" style={{ width: size, height: size }}>
-      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+      <svg width={size} height={size} style={{ transform: "rotate(-90deg)", overflow: "visible" }}>
+        {/* Track */}
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -50,6 +49,7 @@ export function ActivityRing({
           stroke={trackColor}
           strokeWidth={stroke}
         />
+        {/* Progress arc */}
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -60,12 +60,25 @@ export function ActivityRing({
           strokeLinecap="round"
           strokeDasharray={`${dash} ${c}`}
           style={{
-            transition: "stroke-dasharray 1s cubic-bezier(0.22,1,0.36,1)",
+            transition: "stroke-dasharray 1.1s cubic-bezier(0.22, 1, 0.36, 1)",
             filter: complete
-              ? `drop-shadow(0 0 6px ${color})`
+              ? `drop-shadow(0 0 7px ${color})`
               : undefined,
           }}
         />
+        {/* Glowing dot at leading edge */}
+        {animated > 0.04 && (
+          <circle
+            cx={cx}
+            cy={cy}
+            r={stroke / 2}
+            fill={color}
+            style={{
+              filter: `drop-shadow(0 0 4px ${color})`,
+              transition: "cx 1.1s cubic-bezier(0.22,1,0.36,1), cy 1.1s cubic-bezier(0.22,1,0.36,1)",
+            }}
+          />
+        )}
       </svg>
       {children && <div className="ring-center">{children}</div>}
     </div>

@@ -32,7 +32,7 @@ import type {
 const DEFAULT_SETTINGS: Settings = {
   id: "singleton",
   units: "metric",
-  theme: "system",
+  theme: "dark",
   biometricLockEnabled: false,
   schemaVersion: SCHEMA_VERSION,
   createdAt: Date.now(),
@@ -117,9 +117,9 @@ export const workoutRepo = {
       .toArray();
   },
   async inProgress(): Promise<Workout | undefined> {
-    return db().workouts.where("inProgress").equals(1 as never).first().catch(
-      async () => (await db().workouts.toArray()).find((w) => w.inProgress)
-    );
+    // `inProgress` is a boolean — not a valid IndexedDB key — so filter rather
+    // than index-query it.
+    return db().workouts.filter((w) => w.inProgress).first();
   },
 
   /**
@@ -318,6 +318,35 @@ export const photoRepo = {
     await db().photos.delete(id);
   },
 };
+
+/* -------------------------------------------------------------------------- */
+/* Derived-data regeneration                                                   */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Recompute the entire PR table from finalized workouts in chronological
+ * order. Deterministic and idempotent — used after an import (or to repair a
+ * corrupted PR table). Also re-writes each set's `prTypes` flags.
+ */
+export async function rebuildDerivedData(): Promise<number> {
+  const d = db();
+  return d.transaction("rw", d.workouts, d.prs, async () => {
+    const workouts = (await d.workouts.toArray())
+      .filter((w) => !w.inProgress)
+      .sort((a, b) => a.date - b.date);
+
+    await d.prs.clear();
+    const best = buildBestMap([]);
+    const allPRs: PRRecord[] = [];
+    for (const w of workouts) {
+      const prs = detectPRs(w, best);
+      allPRs.push(...prs);
+      await d.workouts.put(w); // persist updated set.prTypes flags
+    }
+    if (allPRs.length) await d.prs.bulkPut(allPRs);
+    return allPRs.length;
+  });
+}
 
 /* -------------------------------------------------------------------------- */
 /* Timeline aggregation                                                        */

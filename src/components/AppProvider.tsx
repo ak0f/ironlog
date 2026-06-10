@@ -51,7 +51,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     (async () => {
       try {
         await exerciseRepo.seed(BUNDLED_EXERCISES);
-        const s = await settingsRepo.get();
+        let s = await settingsRepo.get();
+        // Migrate: "system" was the old default — upgrade to explicit dark.
+        if (s.theme === "system") {
+          s = await settingsRepo.update({ theme: "dark" });
+        }
         if (cancelled) return;
         applyTheme(s.theme);
         setSettings(s);

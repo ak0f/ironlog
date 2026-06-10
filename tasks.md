@@ -133,4 +133,4 @@
 Legend: `[x]` done · `[~]` architected/disabled per spec · `[ ]` not started
 
 
-use the newest version of everything, add more functions, better design like animations and apple hhealth glasmorphism and effects, new day opening register like iphone from down slide etc. add user-flows.md, export import system make it better, 
+use the newest version of everything, add more functions, better design like animations and apple hhealth glasmorphism and effects, new day opening register like iphone from down slide etc. add user-flows.md, export import system make it better, SchemaError: KeyPath workoutId on object store prs is not indexed

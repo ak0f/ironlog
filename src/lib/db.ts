@@ -32,8 +32,9 @@ export class IronLogDB extends Dexie {
 
   constructor() {
     super("ironlog");
+
+    // v1 — original schema.
     this.version(1).stores({
-      // Indexes chosen for the queries the app actually runs.
       exercises: "id, muscleGroup, custom, name",
       workouts: "id, date, inProgress",
       templates: "id, title",
@@ -41,6 +42,15 @@ export class IronLogDB extends Dexie {
       prs: "id, exerciseId, type, date",
       photos: "id, category, date",
       settings: "id",
+    });
+
+    // v2 — index prs.workoutId so PR rows can be queried/deleted per workout
+    // (fixes "KeyPath workoutId on object store prs is not indexed").
+    // Note: `inProgress` is a boolean and therefore not a valid IndexedDB key,
+    // so it is intentionally dropped from the index list and queried by filter.
+    this.version(2).stores({
+      workouts: "id, date",
+      prs: "id, exerciseId, type, date, workoutId",
     });
   }
 }

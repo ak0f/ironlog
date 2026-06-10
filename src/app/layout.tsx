@@ -4,6 +4,8 @@ import { AppProvider } from "@/components/AppProvider";
 import { LockGate } from "@/components/LockGate";
 import { TabBar } from "@/components/TabBar";
 import { ServiceWorker } from "@/components/ServiceWorker";
+import { DailyCheckIn } from "@/components/DailyCheckIn";
+import { Onboarding } from "@/components/Onboarding";
 
 export const metadata: Metadata = {
   title: "IronLog",
@@ -36,13 +38,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="dark">
       <body>
         <AppProvider>
           <LockGate>
             <main className="app-scroll">{children}</main>
             <TabBar />
+            <DailyCheckIn />
           </LockGate>
+          <Onboarding />
           <ServiceWorker />
         </AppProvider>
       </body>

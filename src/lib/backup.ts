@@ -11,6 +11,8 @@
 import JSZip from "jszip";
 import { db } from "./db";
 import { decryptBlobAtRest, decryptBytes, encryptBytes } from "./crypto";
+import { migratePayload } from "./migrations";
+import { rebuildDerivedData } from "./repo";
 import { exportPayloadSchema, SCHEMA_VERSION } from "./schema";
 import type { ExportPayload, Photo } from "@/types";
 import type { StoredPhoto } from "./db";
@@ -24,6 +26,20 @@ export interface ImportResult {
   bodyweight: number;
   prs: number;
   photos: number;
+  migratedFrom?: number;
+}
+
+export interface BackupInfo {
+  exportedAt: number;
+  schemaVersion: number;
+  counts: {
+    exercises: number;
+    workouts: number;
+    templates: number;
+    bodyweight: number;
+    prs: number;
+    photos: number;
+  };
 }
 
 /** Build the encrypted backup blob. */
@@ -84,12 +100,11 @@ export async function exportBackup(passphrase: string): Promise<Blob> {
   return new Blob([out as BlobPart], { type: "application/octet-stream" });
 }
 
-/** Decrypt + restore a backup. Replaces existing data (full restore). */
-export async function importBackup(
+/** Decrypt and open a backup's manifest (shared by inspect + import). */
+async function openBackup(
   fileBytes: ArrayBuffer,
-  passphrase: string,
-  mode: "replace" | "merge" = "replace"
-): Promise<ImportResult> {
+  passphrase: string
+): Promise<{ zip: JSZip; parsed: ExportPayload; migratedFrom?: number }> {
   const all = new Uint8Array(fileBytes);
   const magic = new TextDecoder().decode(all.slice(0, MAGIC.length));
   if (magic !== MAGIC) {
@@ -107,8 +122,54 @@ export async function importBackup(
   const zip = await JSZip.loadAsync(zipBytes);
   const dataFile = zip.file("data.json");
   if (!dataFile) throw new Error("Backup is missing data.json.");
-  const json = JSON.parse(await dataFile.async("string"));
-  const parsed = exportPayloadSchema.parse(json);
+
+  let json: unknown;
+  try {
+    json = JSON.parse(await dataFile.async("string"));
+  } catch {
+    throw new Error("Backup manifest is unreadable.");
+  }
+
+  // Migrate older schemas forward, then validate the result.
+  const outcome = migratePayload(json as Record<string, unknown>);
+  const result = exportPayloadSchema.safeParse(outcome.payload);
+  if (!result.success) {
+    throw new Error("Backup failed validation — the file may be damaged.");
+  }
+  return {
+    zip,
+    parsed: result.data as ExportPayload,
+    migratedFrom: outcome.migrated ? outcome.fromVersion : undefined,
+  };
+}
+
+/** Read a backup's metadata without modifying any data. */
+export async function inspectBackup(
+  fileBytes: ArrayBuffer,
+  passphrase: string
+): Promise<BackupInfo> {
+  const { parsed } = await openBackup(fileBytes, passphrase);
+  return {
+    exportedAt: parsed.exportedAt,
+    schemaVersion: parsed.schemaVersion,
+    counts: {
+      exercises: parsed.data.exercises.length,
+      workouts: parsed.data.workouts.length,
+      templates: parsed.data.templates.length,
+      bodyweight: parsed.data.bodyweight.length,
+      prs: parsed.data.prs.length,
+      photos: parsed.data.photoIndex.length,
+    },
+  };
+}
+
+/** Decrypt + restore a backup. Replaces existing data (full restore). */
+export async function importBackup(
+  fileBytes: ArrayBuffer,
+  passphrase: string,
+  mode: "replace" | "merge" = "replace"
+): Promise<ImportResult> {
+  const { zip, parsed, migratedFrom } = await openBackup(fileBytes, passphrase);
 
   // Re-import photos: read bytes, re-encrypt at rest on this device.
   const { encryptBlobAtRest } = await import("./crypto");
@@ -148,13 +209,19 @@ export async function importBackup(
     }
   );
 
+  // Regenerate derived data (PR records + set flags) so an imported dataset is
+  // always internally consistent, even if the backup predates a PR-engine change.
+  await rebuildDerivedData();
+  const prCount = await db().prs.count();
+
   return {
     exercises: parsed.data.exercises.length,
     workouts: parsed.data.workouts.length,
     templates: parsed.data.templates.length,
     bodyweight: parsed.data.bodyweight.length,
-    prs: parsed.data.prs.length,
+    prs: prCount,
     photos: storedPhotos.length,
+    migratedFrom,
   };
 }
 

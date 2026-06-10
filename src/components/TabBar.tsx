@@ -51,7 +51,9 @@ export function TabBar() {
             className={`tab${active ? " tab-active" : ""}`}
             aria-current={active ? "page" : undefined}
           >
-            <Icon />
+            <div className="tab-icon-wrap">
+              <Icon />
+            </div>
             <span>{label}</span>
           </Link>
         );

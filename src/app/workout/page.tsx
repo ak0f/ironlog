@@ -80,40 +80,71 @@ export default function WorkoutPage() {
     <>
       <TopBar title="Workout" />
       <div className="page">
-        <h1 className="t-hero" style={{ marginBottom: 16 }}>
+        <h1 className="t-hero enter" style={{ marginBottom: 20 }}>
           Workout
         </h1>
 
+        {/* In-progress banner or start button */}
         {inProgress ? (
           <Link
             href="/workout/active"
-            className="card"
+            className="card card-active-pulse card-tap"
             style={{
               display: "block",
-              background: "var(--primary)",
+              background: "linear-gradient(135deg, var(--primary) 0%, var(--primary-focus) 100%)",
               color: "#fff",
-              marginBottom: 16,
+              marginBottom: 20,
+              padding: "18px 20px",
             }}
           >
-            <div className="row-between">
+            <div className="row-between" style={{ alignItems: "center" }}>
               <div>
-                <span style={{ fontSize: 13, fontWeight: 600, opacity: 0.85 }}>
-                  IN PROGRESS
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: 0.8,
+                    textTransform: "uppercase",
+                    opacity: 0.82,
+                  }}
+                >
+                  In progress
                 </span>
-                <div className="t-title" style={{ color: "#fff", marginTop: 2 }}>
+                <div
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 700,
+                    letterSpacing: -0.4,
+                    color: "#fff",
+                    marginTop: 3,
+                  }}
+                >
                   {inProgress.title}
                 </div>
-                <span style={{ fontSize: 14, opacity: 0.85 }}>
-                  {inProgress.exercises.length} exercises · Tap to resume
+                <span style={{ fontSize: 14, opacity: 0.82, marginTop: 2, display: "block" }}>
+                  {inProgress.exercises.length} exercise{inProgress.exercises.length !== 1 ? "s" : ""} · Tap to resume
                 </span>
               </div>
-              <IconChevron style={{ width: 24, height: 24 }} />
+              <div
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: "50%",
+                  background: "rgba(255,255,255,0.22)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
+                <IconChevron style={{ width: 22, height: 22, color: "#fff" }} />
+              </div>
             </div>
           </Link>
         ) : (
           <button
-            className="btn btn-primary btn-block"
-            style={{ marginBottom: 16, height: 52 }}
+            className="btn btn-primary btn-block enter"
+            style={{ height: 54, fontSize: 17, marginBottom: 24, letterSpacing: -0.3 }}
             onClick={startEmpty}
           >
             <IconPlus style={{ width: 22, height: 22 }} />
@@ -123,7 +154,7 @@ export default function WorkoutPage() {
 
         {/* Templates */}
         {templates && templates.length > 0 && (
-          <section style={{ marginBottom: 24 }}>
+          <section style={{ marginBottom: 28 }}>
             <h2 className="t-caption-strong" style={{ marginBottom: 10 }}>
               Templates
             </h2>
@@ -132,16 +163,31 @@ export default function WorkoutPage() {
                 <div key={t.id} className="list-row">
                   <button
                     className="grow row gap-sm"
-                    style={{ background: "none", border: "none", textAlign: "left", minWidth: 0 }}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      textAlign: "left",
+                      minWidth: 0,
+                      cursor: "pointer",
+                    }}
                     onClick={() => startFromTemplate(t)}
                   >
-                    <div className="muscle-badge" style={{ width: 40, height: 40 }}>
-                      <IconDumbbell style={{ width: 22, height: 22, color: "var(--primary)" }} />
+                    <div
+                      className="muscle-badge"
+                      style={{
+                        width: 40,
+                        height: 40,
+                        background: "var(--primary-tint)",
+                      }}
+                    >
+                      <IconDumbbell
+                        style={{ width: 20, height: 20, color: "var(--primary)" }}
+                      />
                     </div>
                     <div style={{ minWidth: 0 }}>
                       <div className="t-headline">{t.title}</div>
                       <span className="muted" style={{ fontSize: 13 }}>
-                        {t.exercises.length} exercises
+                        {t.exercises.length} exercise{t.exercises.length !== 1 ? "s" : ""}
                       </span>
                     </div>
                   </button>
@@ -150,7 +196,7 @@ export default function WorkoutPage() {
                     onClick={() => deleteTemplate(t.id)}
                     aria-label="Delete template"
                   >
-                    <IconTrash style={{ width: 20, height: 20 }} />
+                    <IconTrash style={{ width: 18, height: 18 }} />
                   </button>
                 </div>
               ))}
@@ -185,7 +231,7 @@ export default function WorkoutPage() {
                   </div>
                   <WorkoutGroups workout={w} />
                   <IconChevron
-                    style={{ width: 18, height: 18, color: "var(--ink-muted-30)" }}
+                    style={{ width: 16, height: 16, color: "var(--ink-muted-30)", flexShrink: 0 }}
                   />
                 </Link>
               ))}
@@ -202,9 +248,9 @@ function WorkoutGroups({ workout }: { workout: Workout }) {
     new Set(workout.exercises.map((e) => e.muscleGroup))
   ).slice(0, 3);
   return (
-    <div className="row" style={{ gap: 2 }}>
+    <div className="row" style={{ gap: 3 }}>
       {groups.map((g) => (
-        <MuscleBadge key={g} group={g} size={30} />
+        <MuscleBadge key={g} group={g} size={28} />
       ))}
     </div>
   );

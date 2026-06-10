@@ -46,6 +46,7 @@ export default function DashboardPage() {
     [],
     0
   );
+
   useEffect(() => {
     void computeStreak().then(setStreak);
     void weeklyFrequency().then(setFreq);
@@ -77,6 +78,17 @@ export default function DashboardPage() {
     y: w.weight,
   }));
 
+  const [dateStr, setDateStr] = useState("");
+  useEffect(() => {
+    setDateStr(
+      new Date().toLocaleDateString(undefined, {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+      })
+    );
+  }, []);
+
   const greeting = (() => {
     const h = new Date().getHours();
     if (h < 12) return "Good morning";
@@ -95,62 +107,73 @@ export default function DashboardPage() {
         }
       />
       <div className="page">
-        <div className="enter">
-          <h1 className="t-hero" style={{ marginBottom: 4 }}>
+
+        {/* Greeting */}
+        <div className="enter" style={{ marginBottom: 20 }}>
+          <h1 className="t-hero" style={{ marginBottom: 8 }}>
             {greeting}
+            {settings?.displayName ? `, ${settings.displayName}` : ""}
           </h1>
-          <p className="muted" style={{ marginBottom: 20 }}>
-            {new Date().toLocaleDateString(undefined, {
-              weekday: "long",
-              month: "long",
-              day: "numeric",
-            })}
-          </p>
+          <span className="date-pill">{dateStr}</span>
         </div>
 
         <div className="dash-grid stagger">
-          {/* Signature ring card */}
-          <div className="card span-2">
+
+          {/* Hero ring card */}
+          <div className="card card-hero span-2" style={{ padding: "20px 20px 18px" }}>
             <div className="row gap-md" style={{ alignItems: "center" }}>
-              <ActivityRing progress={weekCount / WEEKLY_GOAL} size={128} stroke={15}>
-                <span className="stat-value" style={{ fontSize: 30 }}>
+              <ActivityRing
+                progress={weekCount / WEEKLY_GOAL}
+                size={132}
+                stroke={16}
+              >
+                <span
+                  className="stat-value"
+                  style={{ fontSize: 34, lineHeight: 1, fontWeight: 800, letterSpacing: -1.5 }}
+                >
                   <AnimatedNumber value={weekCount} />
                 </span>
-                <span
-                  className="muted"
-                  style={{ fontSize: 12, fontWeight: 600, marginTop: 2 }}
-                >
-                  of {WEEKLY_GOAL}
-                </span>
+                <span className="ring-goal-label">of {WEEKLY_GOAL}</span>
               </ActivityRing>
 
-              <div className="grow">
-                <span className="t-caption-strong">This week</span>
-                <div
-                  className="row gap-xs"
-                  style={{ margin: "6px 0 14px", alignItems: "baseline" }}
+              <div className="grow col" style={{ gap: 0 }}>
+                <span
+                  className="t-caption-strong"
+                  style={{ marginBottom: 10 }}
                 >
+                  This week
+                </span>
+
+                {/* Streak badge */}
+                <div className="streak-badge" style={{ alignSelf: "flex-start", marginBottom: 14 }}>
                   <IconFlame
-                    style={{ width: 22, height: 22, color: "var(--primary)" }}
+                    style={{ width: 20, height: 20, color: "var(--fire)", flexShrink: 0 }}
                   />
-                  <span className="stat-value" style={{ fontSize: 28 }}>
+                  <span className="streak-badge-val">
                     <AnimatedNumber value={streak} />
                   </span>
-                  <span className="muted" style={{ fontSize: 14, fontWeight: 600 }}>
-                    day streak
-                  </span>
+                  <span className="streak-badge-label">day streak</span>
                 </div>
+
+                {/* Frequency bars */}
                 <div className="freq-bars">
                   {freq.map((v, i) => {
                     const dayIdx = (todayIdx - (6 - i) + 7) % 7;
+                    const isToday = i === 6;
                     return (
                       <div key={i} className="freq-col">
                         <div
                           className={`freq-bar${v > 0 ? " freq-bar-on" : ""}`}
-                          style={{ height: v > 0 ? `${Math.min(100, 34 + v * 30)}%` : "10%" }}
+                          style={{
+                            height: v > 0 ? `${Math.min(100, 36 + v * 28)}%` : "10%",
+                            ...(isToday && v === 0
+                              ? { background: "var(--primary-tint)", border: "1.5px solid var(--primary)", borderRadius: 4 }
+                              : {}),
+                          }}
                         />
                         <span
-                          className={`freq-day${i === 6 ? " freq-day-today" : ""}`}
+                          className={`freq-day${isToday ? " freq-day-today" : ""}`}
+                          style={{ fontWeight: isToday ? 700 : 500 }}
                         >
                           {DAY_LABELS[dayIdx]}
                         </span>
@@ -162,22 +185,62 @@ export default function DashboardPage() {
             </div>
           </div>
 
+          {/* Total workouts chip row */}
+          {(workoutCount ?? 0) > 0 && (
+            <div className="stat-chips span-2">
+              <div className="stat-chip">
+                <span className="stat-chip-val">
+                  <AnimatedNumber value={workoutCount ?? 0} />
+                </span>
+                <span className="stat-chip-label">sessions</span>
+              </div>
+              <div className="stat-chip">
+                <span className="stat-chip-val">
+                  <AnimatedNumber
+                    value={weekCount}
+                  />
+                </span>
+                <span className="stat-chip-label">this week</span>
+              </div>
+              {streak > 0 && (
+                <div className="stat-chip">
+                  <span className="stat-chip-val" style={{ color: "var(--fire)" }}>
+                    <AnimatedNumber value={streak} />
+                  </span>
+                  <span className="stat-chip-label">day streak</span>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Bodyweight trend */}
-          <Link href="/body" className="card span-2 card-tap" style={{ display: "block" }}>
-            <div className="row-between" style={{ marginBottom: 6 }}>
+          <Link
+            href="/body"
+            className="card span-2 card-tap"
+            style={{ display: "block" }}
+          >
+            <div className="row-between" style={{ marginBottom: 8 }}>
               <span className="t-caption-strong">Bodyweight</span>
               {latestWeight && (
-                <span className="t-headline tnum">
+                <span
+                  className="t-headline tnum"
+                  style={{ color: "var(--primary)" }}
+                >
                   {formatWeight(latestWeight.weight, units)}
                 </span>
               )}
             </div>
             <LineChart
               points={trendPoints}
-              height={150}
+              height={140}
               goal={settings?.bodyweightGoal}
               formatY={(y) => `${Math.round(fromKg(y, units))}`}
             />
+            {!trendPoints.length && (
+              <p className="muted" style={{ fontSize: 14, padding: "12px 0 4px" }}>
+                Log your bodyweight to see your trend.
+              </p>
+            )}
           </Link>
 
           {/* Last workout */}
@@ -186,74 +249,93 @@ export default function DashboardPage() {
             className="card span-2 card-tap"
             style={{ display: "block" }}
           >
-            <div className="row-between">
+            <div className="row-between" style={{ marginBottom: lastWorkout ? 12 : 0 }}>
               <span className="t-caption-strong">Last workout</span>
               <IconChevron
-                style={{ width: 18, height: 18, color: "var(--ink-muted-30)" }}
+                style={{ width: 17, height: 17, color: "var(--ink-muted-30)" }}
               />
             </div>
             {lastWorkout ? (
-              <div className="row gap-sm" style={{ marginTop: 12 }}>
-                <div className="row" style={{ gap: 2 }}>
+              <div className="row gap-sm" style={{ alignItems: "center" }}>
+                <div className="row" style={{ gap: 3 }}>
                   {Array.from(
                     new Set(lastWorkout.exercises.map((e) => e.muscleGroup))
                   )
                     .slice(0, 2)
                     .map((g) => (
-                      <MuscleBadge key={g} group={g} size={40} />
+                      <MuscleBadge key={g} group={g} size={42} />
                     ))}
                 </div>
-                <div className="grow">
-                  <div className="t-title" style={{ fontSize: 19 }}>
+                <div className="grow" style={{ minWidth: 0 }}>
+                  <div
+                    className="t-title"
+                    style={{ fontSize: 18, letterSpacing: -0.4, marginBottom: 2 }}
+                  >
                     {lastWorkout.title}
                   </div>
-                  <p className="muted" style={{ fontSize: 14, marginTop: 2 }}>
+                  <p className="muted" style={{ fontSize: 13, margin: 0 }}>
                     {relativeDay(lastWorkout.date)} ·{" "}
                     {lastWorkout.exercises.length} exercises ·{" "}
-                    {lastWorkout.exercises.reduce((n, e) => n + e.sets.length, 0)}{" "}
-                    sets
+                    {lastWorkout.exercises.reduce((n, e) => n + e.sets.length, 0)} sets
                   </p>
                 </div>
               </div>
             ) : (
-              <p className="muted" style={{ marginTop: 10 }}>
-                No workouts yet — start your first one.
+              <p className="muted" style={{ fontSize: 14, marginTop: 8 }}>
+                No workouts yet — start your first session.
               </p>
             )}
           </Link>
 
           {/* Recent PRs */}
-          <div className="card span-2">
-            <div className="row-between" style={{ marginBottom: 14 }}>
-              <span className="t-caption-strong">Recent PRs</span>
-              <IconTrophy
-                style={{ width: 20, height: 20, color: "var(--pr-gold)" }}
-              />
-            </div>
-            {recentPRs && recentPRs.length ? (
-              <div className="col gap-md">
-                {recentPRs.map((pr) => (
-                  <div key={pr.id} className="row-between">
-                    <div style={{ minWidth: 0 }}>
-                      <div className="t-headline" style={{ fontSize: 16 }}>
-                        {pr.exerciseName}
+          {recentPRs && recentPRs.length > 0 && (
+            <div className="card span-2">
+              <div className="row-between" style={{ marginBottom: 16 }}>
+                <span className="t-caption-strong">Recent PRs</span>
+                <IconTrophy
+                  style={{ width: 18, height: 18, color: "var(--pr-gold)" }}
+                />
+              </div>
+              <div className="col" style={{ gap: 14 }}>
+                {recentPRs.map((pr, i) => (
+                  <div key={pr.id}>
+                    {i > 0 && (
+                      <div
+                        style={{
+                          height: "0.5px",
+                          background: "var(--hairline)",
+                          margin: "0 0 14px",
+                        }}
+                      />
+                    )}
+                    <div className="row-between" style={{ alignItems: "center" }}>
+                      <div style={{ minWidth: 0 }}>
+                        <div
+                          className="t-headline"
+                          style={{ fontSize: 16, marginBottom: 2 }}
+                        >
+                          {pr.exerciseName}
+                        </div>
+                        <span className="muted" style={{ fontSize: 13 }}>
+                          {pr.type === "weight"
+                            ? `Top weight · ${formatWeight(pr.weight, units)}`
+                            : pr.type === "reps"
+                              ? `Rep PR · ${pr.reps} reps`
+                              : `Volume · ${formatWeight(pr.weight, units)} × ${pr.reps}`}
+                        </span>
                       </div>
-                      <span className="muted" style={{ fontSize: 13 }}>
-                        {pr.type === "weight"
-                          ? `Top weight · ${formatWeight(pr.weight, units)}`
-                          : pr.type === "reps"
-                            ? `Rep PR · ${pr.reps} reps`
-                            : `Volume · ${formatWeight(pr.weight, units)} × ${pr.reps}`}
+                      <span
+                        className={`pr-badge pr-type-${pr.type}`}
+                        style={{ flexShrink: 0, marginLeft: 8 }}
+                      >
+                        {pr.type}
                       </span>
                     </div>
-                    <span className="pr-badge">{pr.type}</span>
                   </div>
                 ))}
               </div>
-            ) : (
-              <p className="muted">Set your first PR to see it here.</p>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Latest photo */}
           {photoUrl && (
@@ -268,7 +350,7 @@ export default function DashboardPage() {
               >
                 Latest photo
               </span>
-              <div className="img-surface" style={{ aspectRatio: "16 / 10" }}>
+              <div className="img-surface" style={{ aspectRatio: "16 / 9" }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={photoUrl}
@@ -278,6 +360,7 @@ export default function DashboardPage() {
               </div>
             </Link>
           )}
+
         </div>
       </div>
     </>

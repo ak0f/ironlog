@@ -1,0 +1,294 @@
+[     255ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[     428ms] [LOG] [HMR] connected @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[     475ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3210/favicon.ico:0
+[     533ms] Error: Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <InnerScrollAndFocusHandlerOld focusAndScrollRef={{scrollRef:null, ...}} cacheNode={{rsc:{...}, ...}}>
+      <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+        <LoadingBoundary name="/" loading={null}>
+          <HTTPAccessFallbackBoundary notFound={{...}} forbidden={undefined} unauthorized={undefined}>
+            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={{...}} forbidden={undefined} unauthorized={undefined} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} segmentPath={[...]} ...>
+                    <SegmentViewNode type="page" pagePath="page.tsx">
+                      <SegmentTrieNode>
+                      <ClientPageRoot Component={function DashboardPage} serverProvidedParams={{...}}>
+                        <DashboardPage params={Promise} searchParams={Promise}>
+                          <TopBar>
+                          <div className="page">
+                            <div className="enter">
+                              <h1>
+                              <p className="muted" style={{marginBottom:20}}>
++                               Thursday, June 11
+-                               Thursday 11 June
+                            ...
+                    ...
+                  ...
+      ...
+
+    at throwOnHydrationMismatch (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:3318:56)
+    at prepareToHydrateHostInstance (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:3372:23)
+    at completeWork (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:6922:60)
+    at runWithFiberInDEV (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:965:74)
+    at completeUnitOfWork (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9622:23)
+    at performUnitOfWork (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9557:28)
+    at workLoopConcurrentByScheduler (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9551:58)
+    at renderRootConcurrent (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9534:71)
+    at performWorkOnRoot (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9061:150)
+    at performWorkOnRootViaSchedulerTask (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:10255:9)
+    at MessagePort.performWorkUntilDeadline (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_1amofcm._.js:2647:64)
+[   42599ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[   43031ms] [LOG] [Fast Refresh] done in 546ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[   44085ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[   44507ms] [LOG] [Fast Refresh] done in 522ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[   51366ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[   52023ms] [LOG] [Fast Refresh] done in 772ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[   53910ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3210/settings/:0
+[   69867ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[   70291ms] [LOG] [Fast Refresh] done in 532ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  160417ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  160881ms] [LOG] [Fast Refresh] done in 579ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  529833ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  529881ms] [LOG] [Fast Refresh] done in 14ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  536125ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  536165ms] [LOG] [Fast Refresh] done in 7ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  541959ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  541985ms] [LOG] [Fast Refresh] done in 11ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  546378ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  546416ms] [LOG] [Fast Refresh] done in 7ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  552511ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  552551ms] [LOG] [Fast Refresh] done in 6ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  565330ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  565374ms] [LOG] [Fast Refresh] done in 10ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  573017ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  573032ms] [LOG] [Fast Refresh] done in 42ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  582034ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  582069ms] [LOG] [Fast Refresh] done in 17ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  606770ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  606800ms] [LOG] [Fast Refresh] done in 9ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  611607ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  611706ms] [LOG] [Fast Refresh] done in 47ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  659519ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  659633ms] [LOG] [Fast Refresh] done in 29ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  747315ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  747438ms] [LOG] [Fast Refresh] done in 17ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  783703ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  783797ms] [LOG] [Fast Refresh] done in 45ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  796164ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  796291ms] [LOG] [Fast Refresh] done in 29ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  822061ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  822102ms] [LOG] [Fast Refresh] done in 7ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  835816ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  835817ms] [LOG] [Fast Refresh] done in 114ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  835855ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  835883ms] [LOG] [Fast Refresh] done in 37ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  839114ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  839135ms] [LOG] [Fast Refresh] done in 42ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  841366ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  841481ms] [LOG] [Fast Refresh] done in 224ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  846773ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  846842ms] [LOG] [Fast Refresh] done in 173ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  847676ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  847710ms] [LOG] [Fast Refresh] done in 139ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  849434ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  850070ms] [LOG] [Fast Refresh] done in 748ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  856336ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  856425ms] [LOG] [Fast Refresh] done in 190ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  857136ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  857689ms] [LOG] [Fast Refresh] done in 654ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  882432ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[  882499ms] [LOG] [Fast Refresh] done in 176ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[ 1002851ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[ 1002992ms] [LOG] [Fast Refresh] done in 243ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[ 1003101ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[ 1003129ms] [LOG] [HMR] connected @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[ 1003170ms] Error: Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <InnerScrollAndFocusHandlerOld focusAndScrollRef={{scrollRef:null, ...}} cacheNode={{rsc:{...}, ...}}>
+      <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+        <LoadingBoundary name="/" loading={null}>
+          <HTTPAccessFallbackBoundary notFound={{...}} forbidden={undefined} unauthorized={undefined}>
+            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={{...}} forbidden={undefined} unauthorized={undefined} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} segmentPath={[...]} ...>
+                    <SegmentViewNode type="page" pagePath="page.tsx">
+                      <SegmentTrieNode>
+                      <ClientPageRoot Component={function DashboardPage} serverProvidedParams={{...}}>
+                        <DashboardPage params={Promise} searchParams={Promise}>
+                          <TopBar>
+                          <div className="page">
+                            <div className="enter" style={{...}}>
+                              <h1>
+                              <span className="date-pill">
++                               Thursday, June 11
+-                               Thursday 11 June
+                            ...
+                    ...
+                  ...
+      ...
+
+    at throwOnHydrationMismatch (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:3318:56)
+    at prepareToHydrateHostInstance (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:3372:23)
+    at completeWork (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:6922:60)
+    at runWithFiberInDEV (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:965:74)
+    at completeUnitOfWork (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9622:23)
+    at performUnitOfWork (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9557:28)
+    at workLoopConcurrentByScheduler (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9551:58)
+    at renderRootConcurrent (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9534:71)
+    at performWorkOnRoot (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9061:150)
+    at performWorkOnRootViaSchedulerTask (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:10255:9)
+    at MessagePort.performWorkUntilDeadline (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_1amofcm._.js:2647:64)
+[ 1145346ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[ 1145367ms] [LOG] [HMR] connected @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[ 1164221ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[ 1164228ms] [WARNING] [Fast Refresh] performing full reload
+
+Fast Refresh will perform a full reload when you edit a file that's imported by modules outside of the React rendering tree.
+You might have a file which exports a React component but also exports a value that is imported by a non-React component file.
+Consider migrating the non-React component export to a separate file and importing it into both files.
+
+It is also possible the parent component of the component you edited is a class component, which disables Fast Refresh.
+Fast Refresh requires at least one parent function component in your React tree. @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[ 1164348ms] [LOG] [Fast Refresh] done in 22ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[ 1164467ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[ 1164533ms] [LOG] [Fast Refresh] done in 179ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[ 1164672ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[ 1164712ms] [LOG] [HMR] connected @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[ 1164764ms] Error: Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <InnerScrollAndFocusHandlerOld focusAndScrollRef={{scrollRef:null, ...}} cacheNode={{rsc:{...}, ...}}>
+      <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+        <LoadingBoundary name="/" loading={null}>
+          <HTTPAccessFallbackBoundary notFound={{...}} forbidden={undefined} unauthorized={undefined}>
+            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={{...}} forbidden={undefined} unauthorized={undefined} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} segmentPath={[...]} ...>
+                    <SegmentViewNode type="page" pagePath="page.tsx">
+                      <SegmentTrieNode>
+                      <ClientPageRoot Component={function DashboardPage} serverProvidedParams={{...}}>
+                        <DashboardPage params={Promise} searchParams={Promise}>
+                          <TopBar>
+                          <div className="page">
+                            <div className="enter" style={{...}}>
+                              <h1>
+                              <span className="date-pill">
++                               Thursday, June 11
+-                               Thursday 11 June
+                            ...
+                    ...
+                  ...
+      ...
+
+    at throwOnHydrationMismatch (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:3318:56)
+    at prepareToHydrateHostInstance (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:3372:23)
+    at completeWork (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:6922:60)
+    at runWithFiberInDEV (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:965:74)
+    at completeUnitOfWork (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9622:23)
+    at performUnitOfWork (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9557:28)
+    at workLoopConcurrentByScheduler (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9551:58)
+    at renderRootConcurrent (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9534:71)
+    at performWorkOnRoot (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9061:150)
+    at performWorkOnRootViaSchedulerTask (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:10255:9)
+    at MessagePort.performWorkUntilDeadline (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_1amofcm._.js:2647:64)
+[ 1167915ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[ 1168056ms] [LOG] [Fast Refresh] done in 36ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[ 1173019ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[ 1173025ms] [WARNING] [Fast Refresh] performing full reload
+
+Fast Refresh will perform a full reload when you edit a file that's imported by modules outside of the React rendering tree.
+You might have a file which exports a React component but also exports a value that is imported by a non-React component file.
+Consider migrating the non-React component export to a separate file and importing it into both files.
+
+It is also possible the parent component of the component you edited is a class component, which disables Fast Refresh.
+Fast Refresh requires at least one parent function component in your React tree. @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[ 1173152ms] [LOG] [Fast Refresh] done in 57ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[ 1173266ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[ 1175779ms] [LOG] [Fast Refresh] done in 2625ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[ 1175897ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[ 1175925ms] [LOG] [HMR] connected @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[ 1175965ms] Error: Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <InnerScrollAndFocusHandlerOld focusAndScrollRef={{scrollRef:null, ...}} cacheNode={{rsc:{...}, ...}}>
+      <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+        <LoadingBoundary name="/" loading={null}>
+          <HTTPAccessFallbackBoundary notFound={{...}} forbidden={undefined} unauthorized={undefined}>
+            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={{...}} forbidden={undefined} unauthorized={undefined} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} segmentPath={[...]} ...>
+                    <SegmentViewNode type="page" pagePath="page.tsx">
+                      <SegmentTrieNode>
+                      <ClientPageRoot Component={function DashboardPage} serverProvidedParams={{...}}>
+                        <DashboardPage params={Promise} searchParams={Promise}>
+                          <TopBar>
+                          <div className="page">
+                            <div className="enter" style={{...}}>
+                              <h1>
+                              <span className="date-pill">
++                               Thursday, June 11
+-                               Thursday 11 June
+                            ...
+                    ...
+                  ...
+      ...
+
+    at throwOnHydrationMismatch (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:3318:56)
+    at prepareToHydrateHostInstance (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:3372:23)
+    at completeWork (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:6922:60)
+    at runWithFiberInDEV (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:965:74)
+    at completeUnitOfWork (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9622:23)
+    at performUnitOfWork (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9557:28)
+    at workLoopConcurrentByScheduler (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9551:58)
+    at renderRootConcurrent (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9534:71)
+    at performWorkOnRoot (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:9061:150)
+    at performWorkOnRootViaSchedulerTask (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_react-dom_096_9a-._.js:10255:9)
+    at MessagePort.performWorkUntilDeadline (http://localhost:3210/_next/static/chunks/node_modules_next_dist_compiled_1amofcm._.js:2647:64)
+[ 1209776ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477
+[ 1209807ms] [LOG] [Fast Refresh] done in 64ms @ http://localhost:3210/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2477

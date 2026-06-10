@@ -1,0 +1,60 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e4]:
+      - generic [ref=e6]: IronLog
+      - link "Settings" [ref=e8] [cursor=pointer]:
+        - /url: /settings/
+        - img [ref=e9]
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - heading "Good morning" [level=1] [ref=e14]
+        - paragraph [ref=e15]: Thursday 11 June
+      - generic [ref=e16]:
+        - generic [ref=e18]:
+          - generic [ref=e19]:
+            - img [ref=e20]
+            - generic [ref=e23]:
+              - generic [ref=e24]: "0"
+              - generic [ref=e25]: of 4
+          - generic [ref=e26]:
+            - text: This week
+            - generic [ref=e27]:
+              - img [ref=e28]
+              - generic [ref=e31]: "0"
+              - generic [ref=e32]: day streak
+        - link "Bodyweight No data yet" [ref=e34] [cursor=pointer]:
+          - /url: /body/
+          - generic [ref=e36]: Bodyweight
+          - generic [ref=e37]: No data yet
+        - link "Last workout No workouts yet — start your first one." [ref=e38] [cursor=pointer]:
+          - /url: /workout/
+          - generic [ref=e39]:
+            - generic [ref=e40]: Last workout
+            - img [ref=e41]
+          - paragraph [ref=e43]: No workouts yet — start your first one.
+        - generic [ref=e44]:
+          - generic [ref=e45]:
+            - generic [ref=e46]: Recent PRs
+            - img [ref=e47]
+          - paragraph [ref=e51]: Set your first PR to see it here.
+  - navigation "Primary" [ref=e52]:
+    - link "Home" [ref=e53] [cursor=pointer]:
+      - /url: /
+      - img [ref=e54]
+      - generic [ref=e59]: Home
+    - link "Workout" [ref=e60] [cursor=pointer]:
+      - /url: /workout/
+      - img [ref=e61]
+      - generic [ref=e63]: Workout
+    - link "Timeline" [ref=e64] [cursor=pointer]:
+      - /url: /timeline/
+      - img [ref=e65]
+      - generic [ref=e69]: Timeline
+    - link "Body" [ref=e70] [cursor=pointer]:
+      - /url: /body/
+      - img [ref=e71]
+      - generic [ref=e74]: Body
+    - link "Photos" [ref=e75] [cursor=pointer]:
+      - /url: /photos/
+      - img [ref=e76]
+      - generic [ref=e79]: Photos
