@@ -136,8 +136,13 @@ function WizFeature({ icon, iconBg, text, sub }: { icon: React.ReactNode; iconBg
 
 export default function WelcomePage() {
   const router = useRouter();
-  const { user, refreshProfile } = useAuth();
+  const { user, authReady, refreshProfile } = useAuth();
   const [step, setStep] = useState<Step>("splash");
+
+  // Already logged in — skip the wizard
+  useEffect(() => {
+    if (authReady && user) router.replace("/");
+  }, [authReady, user, router]);
   const [dir, setDir] = useState<"forward" | "back">("forward");
 
   const [email, setEmail] = useState("");
@@ -191,9 +196,14 @@ export default function WelcomePage() {
     setStep(next);
   }
 
+  function markWelcomed() {
+    if (typeof window !== "undefined") localStorage.setItem("ironlog:welcomed", "1");
+  }
+
   async function handleGoogle() {
     setError("");
     setBusy(true);
+    markWelcomed();
     const redirectTo =
       typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : "";
     const { error: err } = await signInWithGoogle(redirectTo);
@@ -207,6 +217,7 @@ export default function WelcomePage() {
     const { error: err } = await signInWithEmail(email, password);
     setBusy(false);
     if (err) { setError(err.message); return; }
+    markWelcomed();
     router.replace("/leaderboard");
   }
 
@@ -230,6 +241,7 @@ export default function WelcomePage() {
   }
 
   async function handleAvatarDone() {
+    markWelcomed();
     if (!user) { router.replace("/leaderboard"); return; }
     setBusy(true);
     const avatarVal = uploadedAvatarUrl ?? `color:${selectedColor}`;
@@ -359,6 +371,13 @@ export default function WelcomePage() {
             </button>
             <button className="btn btn-text wiz-hint" onClick={() => go("login")}>
               I already have an account
+            </button>
+            <button
+              className="btn btn-text"
+              style={{ color: "var(--ink-muted-30)", fontSize: 13 }}
+              onClick={() => { markWelcomed(); router.replace("/"); }}
+            >
+              Skip for now
             </button>
           </div>
         </div>

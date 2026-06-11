@@ -46,8 +46,11 @@ const TABS = [
   },
 ];
 
+const HIDDEN_PATHS = ["/welcome", "/auth"];
+
 export function TabBar() {
   const pathname = usePathname() || "/";
+  if (HIDDEN_PATHS.some((p) => pathname.startsWith(p))) return null;
   return (
     <nav className="tabbar no-select" aria-label="Primary">
       {TABS.map(({ href, label, Icon, match }) => {

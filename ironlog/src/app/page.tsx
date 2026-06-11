@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { TopBar } from "@/components/TopBar";
 import { LineChart, type Point } from "@/components/LineChart";
 import { ActivityRing } from "@/components/ActivityRing";
@@ -15,6 +16,7 @@ import {
   IconTrophy,
 } from "@/components/Icons";
 import { useApp, useUnits } from "@/components/AppProvider";
+import { useAuth } from "@/context/AuthContext";
 import {
   bodyweightRepo,
   computeStreak,
@@ -31,6 +33,16 @@ const WEEKLY_GOAL = 4;
 export default function DashboardPage() {
   const units = useUnits();
   const { settings } = useApp();
+  const { user, authReady } = useAuth();
+  const router = useRouter();
+
+  // Redirect first-time unauthenticated visitors to the welcome wizard.
+  useEffect(() => {
+    if (!authReady) return;
+    if (!user && typeof window !== "undefined" && !localStorage.getItem("ironlog:welcomed")) {
+      router.replace("/welcome");
+    }
+  }, [authReady, user, router]);
 
   const recentWorkouts = useLiveQuery(() => workoutRepo.recent(1), [], []);
   const weights = useLiveQuery(() => bodyweightRepo.all(), [], []);
