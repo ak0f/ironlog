@@ -1,46 +1,67 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { getProfile, upsertProfile } from "@/lib/auth";
 
 function CallbackInner() {
-  const params = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState("Signing you in…");
+  const handled = useRef(false);
 
   useEffect(() => {
-    const code = params.get("code");
-    if (!code) {
-      router.replace("/auth/login");
-      return;
+    async function onSession(userId: string, email: string | undefined, meta: Record<string, unknown>) {
+      if (handled.current) return;
+      handled.current = true;
+
+      const existing = await getProfile(userId);
+      if (!existing) {
+        const emailName = email?.split("@")[0] ?? "user";
+        await upsertProfile(userId, {
+          username: emailName,
+          display_name: (meta?.full_name as string) ?? emailName,
+          avatar_url: (meta?.avatar_url as string) ?? null,
+          is_public: false,
+        });
+        router.replace("/profile");
+      } else {
+        router.replace("/leaderboard");
+      }
     }
 
-    supabase.auth
-      .exchangeCodeForSession(code)
-      .then(async ({ data, error }) => {
-        if (error || !data.user) {
-          setStatus("Sign-in failed. Redirecting…");
-          setTimeout(() => router.replace("/auth/login"), 1500);
-          return;
+    function fail() {
+      if (handled.current) return;
+      handled.current = true;
+      setStatus("Sign-in failed. Redirecting…");
+      setTimeout(() => router.replace("/auth/login"), 1500);
+    }
+
+    // Supabase auto-exchanges the PKCE code (detectSessionInUrl: true).
+    // Listen for the resulting SIGNED_IN event, then handle profile + redirect.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === "SIGNED_IN" && session?.user) {
+          await onSession(session.user.id, session.user.email, session.user.user_metadata ?? {});
         }
-        // Ensure profile row exists for Google OAuth users
-        const existing = await getProfile(data.user.id);
-        if (!existing) {
-          const emailName = data.user.email?.split("@")[0] ?? "user";
-          await upsertProfile(data.user.id, {
-            username: emailName,
-            display_name: data.user.user_metadata?.full_name ?? emailName,
-            avatar_url: data.user.user_metadata?.avatar_url ?? null,
-            is_public: false,
-          });
-          router.replace("/profile");
-        } else {
-          router.replace("/leaderboard");
-        }
-      });
-  }, []);
+      }
+    );
+
+    // Race: session may already be set if the exchange completed before listener registered.
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (data.session?.user) {
+        await onSession(data.session.user.id, data.session.user.email, data.session.user.user_metadata ?? {});
+      }
+    });
+
+    // Fallback timeout — if neither fires within 10s, something went wrong.
+    const timeout = setTimeout(fail, 10000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
+  }, [router]);
 
   return (
     <div
