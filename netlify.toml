@@ -1,0 +1,4 @@
+[build]
+  base    = "ironlog"
+  command = "npm run build"
+  publish = ".next"
