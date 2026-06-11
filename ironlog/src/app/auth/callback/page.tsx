@@ -11,21 +11,24 @@ function CallbackInner() {
   const handled = useRef(false);
 
   useEffect(() => {
-    async function onSession(userId: string, email: string | undefined, meta: Record<string, unknown>) {
+    async function finish(userId: string, email: string | undefined, meta: Record<string, unknown>) {
       if (handled.current) return;
       handled.current = true;
-
-      const existing = await getProfile(userId);
-      if (!existing) {
-        const emailName = email?.split("@")[0] ?? "user";
-        await upsertProfile(userId, {
-          username: emailName,
-          display_name: (meta?.full_name as string) ?? emailName,
-          avatar_url: (meta?.avatar_url as string) ?? null,
-          is_public: false,
-        });
-        router.replace("/profile");
-      } else {
+      try {
+        const existing = await getProfile(userId);
+        if (!existing) {
+          const emailName = email?.split("@")[0] ?? "user";
+          await upsertProfile(userId, {
+            username: emailName,
+            display_name: (meta?.full_name as string) ?? emailName,
+            avatar_url: (meta?.avatar_url as string) ?? null,
+            is_public: false,
+          });
+          router.replace("/profile");
+        } else {
+          router.replace("/leaderboard");
+        }
+      } catch {
         router.replace("/leaderboard");
       }
     }
@@ -37,25 +40,27 @@ function CallbackInner() {
       setTimeout(() => router.replace("/auth/login"), 1500);
     }
 
-    // Supabase auto-exchanges the PKCE code (detectSessionInUrl: true).
-    // Listen for the resulting SIGNED_IN event, then handle profile + redirect.
+    // Register listener before getSession so we catch SIGNED_IN if exchange
+    // is still in progress, and INITIAL_SESSION if it already completed.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (event === "SIGNED_IN" && session?.user) {
-          await onSession(session.user.id, session.user.email, session.user.user_metadata ?? {});
+        if (session?.user && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
+          await finish(session.user.id, session.user.email, session.user.user_metadata ?? {});
         }
       }
     );
 
-    // Race: session may already be set if the exchange completed before listener registered.
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (data.session?.user) {
-        await onSession(data.session.user.id, data.session.user.email, data.session.user.user_metadata ?? {});
+    // getSession() awaits initializePromise, so it blocks until the PKCE
+    // exchange is done. Covers the race where INITIAL_SESSION already fired.
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (error || !data.session?.user) {
+        fail();
+      } else {
+        finish(data.session.user.id, data.session.user.email, data.session.user.user_metadata ?? {});
       }
     });
 
-    // Fallback timeout — if neither fires within 10s, something went wrong.
-    const timeout = setTimeout(fail, 10000);
+    const timeout = setTimeout(fail, 12000);
 
     return () => {
       subscription.unsubscribe();
