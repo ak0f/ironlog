@@ -14,6 +14,7 @@ import {
   IconFlame,
   IconGear,
   IconTrophy,
+  IconUser,
 } from "@/components/Icons";
 import { useApp, useUnits } from "@/components/AppProvider";
 import { useAuth } from "@/context/AuthContext";
@@ -33,7 +34,7 @@ const WEEKLY_GOAL = 4;
 export default function DashboardPage() {
   const units = useUnits();
   const { settings } = useApp();
-  const { user, authReady } = useAuth();
+  const { user, profile, authReady } = useAuth();
   const router = useRouter();
 
   // Redirect first-time unauthenticated visitors to the welcome wizard.
@@ -121,6 +122,34 @@ export default function DashboardPage() {
         </div>
 
         <div className="dash-grid stagger">
+          {/* Profile card — shown when logged in */}
+          {user && profile && (() => {
+            const url = profile.avatar_url ?? null;
+            const isColor = url?.startsWith("color:");
+            const isImg = url && !isColor && !url.startsWith("emoji:");
+            const bg = isColor ? url!.slice(6) : "var(--primary)";
+            const initial = (profile.display_name ?? profile.username ?? "?")[0].toUpperCase();
+            return (
+              <Link href="/profile" className="card span-2 card-tap" style={{ display: "block" }}>
+                <div className="row gap-md" style={{ alignItems: "center" }}>
+                  {isImg ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={url!} alt="" style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                  ) : (
+                    <div className="color-avatar" style={{ background: bg, width: 48, height: 48, fontSize: 20, flexShrink: 0 }}>{initial}</div>
+                  )}
+                  <div className="grow" style={{ minWidth: 0 }}>
+                    <div className="t-headline">{profile.display_name ?? profile.username}</div>
+                    {profile.gym_location && (
+                      <p className="muted" style={{ fontSize: 13, marginTop: 2 }}>{profile.gym_location}</p>
+                    )}
+                  </div>
+                  <IconUser style={{ width: 18, height: 18, color: "var(--ink-muted-30)", flexShrink: 0 }} />
+                </div>
+              </Link>
+            );
+          })()}
+
           {/* Signature ring card */}
           <div className="card span-2">
             <div className="row gap-md" style={{ alignItems: "center" }}>

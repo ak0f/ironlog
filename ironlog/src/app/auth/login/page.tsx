@@ -32,7 +32,7 @@ export default function LoginPage() {
     setBusy(true);
     const redirectTo =
       typeof window !== "undefined"
-        ? `${window.location.origin}/auth/callback/`
+        ? `${window.location.origin}/auth/callback`
         : "";
     const { error: err } = await signInWithGoogle(redirectTo);
     if (err) { setError(err.message); setBusy(false); }
