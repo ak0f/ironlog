@@ -153,7 +153,7 @@ export default function ActiveWorkoutPage() {
     };
     const newPRs = await workoutRepo.save(finalized, true);
     if (newPRs.length > 0) {
-      toast(`🏆 ${newPRs.length} new PR${newPRs.length === 1 ? "" : "s"}!`);
+      toast(`${newPRs.length} new PR${newPRs.length === 1 ? "" : "s"}!`);
     } else {
       toast("Workout saved");
     }

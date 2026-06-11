@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AppProvider } from "@/components/AppProvider";
+import { AuthProvider } from "@/context/AuthContext";
 import { LockGate } from "@/components/LockGate";
 import { TabBar } from "@/components/TabBar";
 import { ServiceWorker } from "@/components/ServiceWorker";
@@ -38,13 +39,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AppProvider>
-          <LockGate>
-            <main className="app-scroll">{children}</main>
-            <TabBar />
-          </LockGate>
-          <ServiceWorker />
-        </AppProvider>
+        <AuthProvider>
+          <AppProvider>
+            <LockGate>
+              <main className="app-scroll">{children}</main>
+              <TabBar />
+            </LockGate>
+            <ServiceWorker />
+          </AppProvider>
+        </AuthProvider>
       </body>
     </html>
   );

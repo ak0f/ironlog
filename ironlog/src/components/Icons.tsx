@@ -156,3 +156,19 @@ export const IconSearch = (p: P) => (
     <path d="M16 16l4 4" />
   </svg>
 );
+
+export const IconUser = (p: P) => (
+  <svg {...base} {...p}>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+  </svg>
+);
+
+export const IconUsers = (p: P) => (
+  <svg {...base} {...p}>
+    <circle cx="9" cy="8" r="3.5" />
+    <path d="M2 20c0-3.3 3.1-6 7-6s7 2.7 7 6" />
+    <circle cx="17" cy="9" r="3" />
+    <path d="M22 20c0-2.8-2.2-5-5-5" />
+  </svg>
+);

@@ -1,0 +1,50 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - img [ref=e7]
+        - heading "IronLog" [level=1] [ref=e11]
+        - paragraph [ref=e12]:
+          - text: Track your gains. Compete with friends.
+          - text: Climb the leaderboard.
+      - generic [ref=e13]:
+        - generic [ref=e14]:
+          - generic [ref=e15]: 📊
+          - generic [ref=e16]: Log workouts & PRs
+        - generic [ref=e17]:
+          - generic [ref=e18]: 🏆
+          - generic [ref=e19]: Global & friends leaderboard
+        - generic [ref=e20]:
+          - generic [ref=e21]: ⚡
+          - generic [ref=e22]: Earn XP as you train
+        - generic [ref=e23]:
+          - generic [ref=e24]: 🤝
+          - generic [ref=e25]: Add friends by code or username
+      - generic [ref=e26]:
+        - button "Get started" [ref=e27] [cursor=pointer]
+        - button "I already have an account" [ref=e28] [cursor=pointer]
+  - navigation "Primary" [ref=e29]:
+    - link "Home" [ref=e30] [cursor=pointer]:
+      - /url: /
+      - img [ref=e31]
+      - generic [ref=e36]: Home
+    - link "Workout" [ref=e37] [cursor=pointer]:
+      - /url: /workout/
+      - img [ref=e38]
+      - generic [ref=e40]: Workout
+    - link "Timeline" [ref=e41] [cursor=pointer]:
+      - /url: /timeline/
+      - img [ref=e42]
+      - generic [ref=e46]: Timeline
+    - link "Body" [ref=e47] [cursor=pointer]:
+      - /url: /body/
+      - img [ref=e48]
+      - generic [ref=e51]: Body
+    - link "Photos" [ref=e52] [cursor=pointer]:
+      - /url: /photos/
+      - img [ref=e53]
+      - generic [ref=e56]: Photos
+    - link "Rank" [ref=e57] [cursor=pointer]:
+      - /url: /leaderboard/
+      - img [ref=e58]
+      - generic [ref=e62]: Rank

@@ -83,19 +83,6 @@
 - [x] Import restoration pipeline
 - [x] Versioned schema support
 
-## Export / Import System
-
-- [ ] Backup manifest schema
-- [ ] ZIP packaging system
-- [ ] AES-GCM encryption pipeline
-- [ ] Password-derived key generation
-- [ ] File export API
-- [ ] File import picker
-- [ ] Backup validation
-- [ ] Schema migration system
-- [ ] Restore pipeline
-- [ ] Derived-data regeneration
-
 ---
 
 ## Phase 9 — Security Layer
@@ -122,6 +109,98 @@
 
 - [~] Cloud sync interface layer (placeholder, disabled)
 - [~] Apple Health integration adapter (placeholder, disabled)
+
+---
+
+## Phase 12 — Leaderboard & Social System
+
+### 12.1 — Supabase Project Setup
+- [x] Create Supabase project and obtain URL + anon key
+- [x] Add Supabase env vars to `.env.local` (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`)
+- [x] Install `@supabase/supabase-js`
+- [x] Create `src/lib/supabase.ts` — typed Supabase client singleton
+
+### 12.2 — Database Schema (Supabase / Postgres)
+- [x] Create `profiles` table with RLS
+- [x] Create `friendships` table with RLS
+- [x] Friend code embedded as column in `profiles`, auto-generated via trigger
+- [x] Create `leaderboard_snapshots` table with RLS
+- [x] Create `synced_prs` table with RLS
+- [x] Create `synced_workouts` table with RLS
+- [x] Create `synced_bodyweight` table with RLS
+- [x] Row Level Security policies on all tables
+- [x] Postgres trigger for auto friend code generation
+- [ ] Run `supabase/migration.sql` in Supabase SQL editor (manual step — needs your Supabase project)
+
+### 12.3 — Authentication
+- [ ] Enable Email/Password auth in Supabase dashboard (manual)
+- [ ] Enable Google OAuth provider in Supabase dashboard (manual)
+- [x] Create `src/app/auth/register/page.tsx` — email, password, username, gym location
+- [x] Create `src/app/auth/login/page.tsx` — email/password + Google button
+- [x] Create `src/app/auth/callback/page.tsx` — PKCE OAuth code exchange
+- [x] Create `src/context/AuthContext.tsx` — global auth state provider
+- [x] Wrap layout in `AuthProvider`
+- [x] Create `src/lib/auth.ts` — `signIn`, `signUp`, `signOut`, `getProfile`, `uploadAvatar`
+
+### 12.4 — User Profile
+- [x] Create `src/app/profile/page.tsx` — avatar, username, gym location, XP stats, visibility toggle
+- [x] Avatar picker — 16 preset emojis + photo upload to Supabase Storage
+- [x] Profile edit sheet — username, display name, gym location
+- [x] Leaderboard visibility toggle (opt-in, default off)
+- [x] Friend code display with copy button
+- [x] Auto-generate friend code via Postgres trigger on profile insert
+
+### 12.5 — Data Sync Engine
+- [x] Create `src/lib/sync.ts` — `syncAll()` orchestrator
+- [x] `syncWorkouts()` — upserts completed workouts with volume
+- [x] `syncPRs()` — upserts all PRs
+- [x] `syncBodyweight()` — upserts bodyweight entries
+- [x] `recalculateSnapshot()` — computes XP + recomp + PR highlights client-side, upserts snapshot
+- [x] "Sync now" button on profile page with last-sync timestamp
+- [ ] Auto-sync after workout save (wire up in active workout page — next iteration)
+
+### 12.6 — XP Engine
+- [x] XP formula: +10/workout, +50/PR, +25/7-day streak, +100/30-day streak, +recomp pts
+- [x] Recomp score: bodyweight delta × 10 (capped 200) + PR improvement bonus (capped 100)
+- [x] Computed client-side in `sync.ts` and stored in `leaderboard_snapshots`
+
+### 12.7 — Leaderboard Page
+- [x] Create `src/app/leaderboard/page.tsx` — Global / Friends tab switcher
+- [x] Category chips: XP Score | Top PRs | Recomp
+- [x] `LeaderboardRow` — rank medal, avatar, username, gym location, metric value
+- [x] Highlights current user's row in primary tint
+- [x] Sticky "your rank" bar when outside top 100 (global tab)
+- [x] Opt-in banner → links to profile for users who haven't gone public
+- [x] "Join leaderboard" gate for logged-out users with register/login CTAs
+- [x] Empty states for both tabs
+- [x] "Rank" tab added to TabBar with trophy icon
+
+### 12.8 — Friends System
+- [x] Create `src/app/friends/page.tsx`
+- [x] Search by username + send request
+- [x] Add by 8-char friend code
+- [x] Accept / reject incoming requests
+- [x] Remove existing friend
+- [x] Pending requests section
+- [x] Friends list with avatar, username, gym location
+
+### 12.9 — UI Polish & Integration
+- [x] "Rank" tab in TabBar (trophy icon), matches auth/profile/friends routes
+- [x] "Join Leaderboard" CTA on leaderboard page for logged-out users
+- [x] XP stats grid on profile page (XP, workouts, streak, recomp)
+- [x] Leaderboard rows animate on load (enter-up)
+- [x] Loading spinner states on all async views
+- [x] All new pages follow Apple design token system
+- [x] Toggle switch, avatar grid, opt-in banner — all new CSS added to globals.css
+- [ ] Add "Join Leaderboard" CTA widget to main dashboard (next iteration)
+
+### 12.10 — Testing & Validation
+- [x] Build passes: `npx next build` — 19 routes, all static, zero TS errors
+- [ ] Test registration + Google OAuth flow end to end (needs live Supabase project)
+- [ ] Test sync: log workout → sync → verify in Supabase
+- [ ] Test RLS: user A cannot read user B's private data
+- [ ] Test friend request flow end to end
+- [ ] Test opt-in toggle hides user from leaderboard
 
 ---
 

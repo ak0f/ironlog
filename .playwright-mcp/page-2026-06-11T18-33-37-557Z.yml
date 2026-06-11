@@ -1,0 +1,54 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e95]:
+      - button "Back" [ref=e96] [cursor=pointer]: ‹
+      - generic [ref=e97]:
+        - heading "Create account" [level=2] [ref=e98]
+        - paragraph [ref=e99]: Step 1 of 2
+      - generic [ref=e100]:
+        - generic [ref=e101]:
+          - generic [ref=e102]: Username
+          - textbox "e.g. ironmike" [ref=e103]
+        - generic [ref=e104]:
+          - generic [ref=e105]: Email
+          - textbox "you@example.com" [ref=e106]
+        - generic [ref=e107]:
+          - generic [ref=e108]: Password
+          - textbox "Min. 6 characters" [ref=e109]
+        - generic [ref=e110]:
+          - generic [ref=e111]: Gym location (optional)
+          - textbox "e.g. Vienna, Austria" [ref=e112]
+        - button "Continue →" [ref=e113] [cursor=pointer]
+  - navigation "Primary" [ref=e29]:
+    - link "Home" [ref=e30] [cursor=pointer]:
+      - /url: /
+      - img [ref=e31]
+      - generic [ref=e36]: Home
+    - link "Workout" [ref=e37] [cursor=pointer]:
+      - /url: /workout/
+      - img [ref=e38]
+      - generic [ref=e40]: Workout
+    - link "Timeline" [ref=e41] [cursor=pointer]:
+      - /url: /timeline/
+      - img [ref=e42]
+      - generic [ref=e46]: Timeline
+    - link "Body" [ref=e47] [cursor=pointer]:
+      - /url: /body/
+      - img [ref=e48]
+      - generic [ref=e51]: Body
+    - link "Photos" [ref=e52] [cursor=pointer]:
+      - /url: /photos/
+      - img [ref=e53]
+      - generic [ref=e56]: Photos
+    - link "Rank" [ref=e57] [cursor=pointer]:
+      - /url: /leaderboard/
+      - img [ref=e58]
+      - generic [ref=e62]: Rank
+  - status [ref=e63]:
+    - generic [ref=e64]:
+      - img [ref=e66]
+      - generic [ref=e68]:
+        - text: Static route
+        - button "Hide static indicator" [ref=e69] [cursor=pointer]:
+          - img [ref=e70]
+  - alert [ref=e73]

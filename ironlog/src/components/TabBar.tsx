@@ -8,6 +8,7 @@ import {
   IconDumbbell,
   IconScale,
   IconTimeline,
+  IconTrophy,
 } from "./Icons";
 
 const TABS = [
@@ -35,6 +36,13 @@ const TABS = [
     label: "Photos",
     Icon: IconCamera,
     match: (p: string) => p.startsWith("/photos"),
+  },
+  {
+    href: "/leaderboard",
+    label: "Rank",
+    Icon: IconTrophy,
+    match: (p: string) =>
+      p.startsWith("/leaderboard") || p.startsWith("/friends") || p.startsWith("/profile") || p.startsWith("/auth"),
   },
 ];
 
