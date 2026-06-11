@@ -117,10 +117,15 @@ function WizDots({ step }: { step: Step }) {
   );
 }
 
-function WizFeature({ icon, text, sub }: { icon: React.ReactNode; text: string; sub: string }) {
+function WizFeature({ icon, iconBg, text, sub }: { icon: React.ReactNode; iconBg?: string; text: string; sub: string }) {
   return (
     <div className="wiz-feature">
-      <span className="wiz-feature-icon">{icon}</span>
+      <span
+        className="wiz-feature-icon"
+        style={iconBg ? { background: iconBg, borderRadius: 10 } : undefined}
+      >
+        {icon}
+      </span>
       <div>
         <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>{text}</div>
         <div style={{ fontSize: 13, color: "var(--ink-muted-48)", marginTop: 1 }}>{sub}</div>
@@ -190,7 +195,7 @@ export default function WelcomePage() {
     setError("");
     setBusy(true);
     const redirectTo =
-      typeof window !== "undefined" ? `${window.location.origin}/auth/callback/` : "";
+      typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : "";
     const { error: err } = await signInWithGoogle(redirectTo);
     if (err) { setError(err.message); setBusy(false); }
   }
@@ -249,7 +254,7 @@ export default function WelcomePage() {
   const initial = username[0]?.toUpperCase() ?? "?";
 
   return (
-    <div className={`wiz-shell${step === "splash" ? " wiz-shell-splash" : ""}`}>
+    <div className="wiz-shell">
 
       {/* ── PWA INSTALL SHEET ── */}
       {installPlatform && (
@@ -323,22 +328,26 @@ export default function WelcomePage() {
 
           <div className="wiz-features stagger">
             <WizFeature
-              icon={<IconDumbbell style={{ width: 20, height: 20 }} />}
+              icon={<IconDumbbell style={{ width: 20, height: 20, color: "#ff375f" }} />}
+              iconBg="rgba(255,59,48,0.18)"
               text="Log workouts & PRs"
               sub="Track every set with precision"
             />
             <WizFeature
-              icon={<IconTrophy style={{ width: 20, height: 20 }} />}
+              icon={<IconTrophy style={{ width: 20, height: 20, color: "#ffd60a" }} />}
+              iconBg="rgba(255,214,10,0.18)"
               text="Global leaderboard"
               sub="See where you rank worldwide"
             />
             <WizFeature
-              icon={<IconFlame style={{ width: 20, height: 20 }} />}
+              icon={<IconFlame style={{ width: 20, height: 20, color: "#a6ff00" }} />}
+              iconBg="rgba(166,255,0,0.16)"
               text="Earn XP as you train"
               sub="Level up with every workout"
             />
             <WizFeature
-              icon={<IconUsers style={{ width: 20, height: 20 }} />}
+              icon={<IconUsers style={{ width: 20, height: 20, color: "#00e5ff" }} />}
+              iconBg="rgba(0,229,255,0.16)"
               text="Friends & rivals"
               sub="Add friends by code or username"
             />
@@ -369,7 +378,7 @@ export default function WelcomePage() {
           <div className="col gap-sm" style={{ width: "100%" }}>
             <button className="wiz-choice-card" onClick={() => go("register")}>
               <span className="wiz-choice-badge wiz-choice-badge-blue">
-                <IconPlus style={{ width: 18, height: 18, color: "var(--primary)" }} />
+                <IconPlus style={{ width: 18, height: 18, color: "#fff" }} />
               </span>
               <div style={{ flex: 1, textAlign: "left" }}>
                 <div className="t-headline">Create account</div>

@@ -1178,27 +1178,39 @@ a {
 }
 
 /* ============================================================
-   Welcome Wizard
+   Welcome Wizard — always dark, no theme switching
    ============================================================ */
 
-/* Dark splash — overrides CSS vars so all children inherit dark theme */
-.wiz-shell-splash {
+/* The whole wizard shell is always dark — no class toggling, no transition flash */
+.wiz-shell {
+  /* Dark theme tokens — independent of system theme */
   --canvas: #000000;
-  --surface-elevated: rgba(255, 255, 255, 0.07);
-  --surface-chip: rgba(255, 255, 255, 0.1);
+  --canvas-2: #111111;
+  --surface-elevated: #1c1c1e;
+  --surface-raised: #2c2c2e;
+  --surface-chip: rgba(255, 255, 255, 0.09);
+  --surface-chip-strong: rgba(255, 255, 255, 0.15);
+  --fill-track: rgba(255, 255, 255, 0.14);
   --ink: #ffffff;
   --body: #f5f5f7;
   --ink-muted-80: rgba(255, 255, 255, 0.88);
-  --ink-muted-48: rgba(255, 255, 255, 0.52);
+  --ink-muted-48: rgba(255, 255, 255, 0.5);
   --ink-muted-30: rgba(255, 255, 255, 0.28);
   --hairline: rgba(255, 255, 255, 0.1);
+  --divider-soft: rgba(255, 255, 255, 0.06);
   --card-shadow: none;
+  --card-shadow-lifted: 0 10px 40px rgba(0, 0, 0, 0.7);
   --primary: #0a84ff;
-  --primary-tint: rgba(10, 132, 255, 0.22);
+  --primary-strong: #409cff;
+  --primary-focus: #409cff;
+  --primary-on-dark: #2997ff;
+  --primary-tint: rgba(10, 132, 255, 0.2);
+  --danger: #ff453a;
+  --good: #30d158;
+  --good-tint: rgba(48, 209, 88, 0.18);
+  --pr-gold: #ffd60a;
   color-scheme: dark;
-}
 
-.wiz-shell {
   position: fixed;
   inset: 0;
   z-index: 100;
@@ -1210,8 +1222,19 @@ a {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   padding: calc(var(--safe-top) + 16px) var(--md) calc(var(--safe-bottom) + 32px);
-  transition: background-color 0.5s ease;
 }
+
+/* Ambient glow behind content */
+.wiz-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% 0%, rgba(10, 132, 255, 0.07) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+.wiz-shell > * { position: relative; z-index: 1; }
 
 .wiz-step {
   width: 100%;
@@ -1319,35 +1342,32 @@ a {
 .wiz-features {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
 }
 .wiz-feature {
   display: flex;
   align-items: center;
   gap: 14px;
-  background: var(--surface-elevated);
+  background: rgba(255, 255, 255, 0.055);
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--r-md);
   padding: 13px 16px;
-  box-shadow: var(--card-shadow);
-  transition: transform 0.14s var(--spring);
+  transition: transform 0.14s var(--spring), background 0.14s ease;
 }
-.wiz-feature:active { transform: scale(0.97); }
-
-/* Frosted glass on dark splash */
-.wiz-shell-splash .wiz-feature {
-  border: 0.5px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+.wiz-feature:active {
+  transform: scale(0.97);
+  background: rgba(255, 255, 255, 0.09);
 }
 .wiz-feature-icon {
-  font-size: 22px;
-  flex-shrink: 0;
   width: 36px;
   height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  color: var(--ink);
+  opacity: 0.85;
 }
 /* legacy alias */
 .wiz-feature-emoji {
@@ -1392,28 +1412,33 @@ a {
   display: flex;
   align-items: center;
   gap: 14px;
-  background: var(--surface-elevated);
-  border: none;
+  background: rgba(255, 255, 255, 0.065);
+  border: 0.5px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--r-lg);
   padding: 16px 18px;
-  box-shadow: var(--card-shadow);
   cursor: pointer;
-  transition: transform 0.14s var(--spring);
+  transition: transform 0.15s var(--spring), background 0.15s ease, border-color 0.15s ease;
 }
-.wiz-choice-card:active { transform: scale(0.97); }
-.wiz-choice-card:disabled { opacity: 0.5; pointer-events: none; }
+.wiz-choice-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.wiz-choice-card:active {
+  transform: scale(0.97);
+  background: rgba(255, 255, 255, 0.13);
+}
+.wiz-choice-card:disabled { opacity: 0.4; pointer-events: none; }
 .wiz-choice-badge {
   width: 44px;
   height: 44px;
-  border-radius: var(--r-md);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 22px;
 }
-.wiz-choice-badge-blue  { background: var(--primary-tint); }
-.wiz-choice-badge-white { background: var(--surface-chip); }
+.wiz-choice-badge-blue  { background: var(--primary); }
+.wiz-choice-badge-white { background: rgba(255, 255, 255, 0.14); }
 /* legacy */
 .wiz-choice-emoji { font-size: 28px; flex-shrink: 0; }
 
